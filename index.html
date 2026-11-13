@@ -1,0 +1,2211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a2520">
+  <meta name="description" content="Smart Civic Connect — AI-Powered Civic Issue Reporting, Urban Accessibility & Community Governance Platform aligned with UN SDG 11.">
+  <title>Smart Civic Connect — One City. Every Voice. Smarter Solutions.</title>
+  
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- Leaflet CSS for Interactive Map & Heatmap -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#mainContent" class="skip-link">Skip to main content</a>
+
+  <div class="app-shell">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="appSidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <a class="brand-link" href="#" data-view="overview" aria-label="Smart Civic Connect Home">
+          <img src="logo.svg" alt="Smart Civic Connect Logo" class="brand-logo-img">
+        </a>
+
+        <!-- Current User Role Indicator -->
+        <div class="role-badge-container">
+          <div class="role-badge-info">
+            <b id="sidebarRoleLabel">Role: Citizen</b>
+            <small id="sidebarRoleDesc">Community Participant</small>
+          </div>
+          <button class="role-switch-btn" id="sidebarRoleSwitchBtn" title="Switch User Role">Switch</button>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">MAIN WORKSPACE</div>
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">▦</span> Overview</button>
+        <button class="nav-item" data-view="reports"><span class="nav-icon">📋</span> All Complaints <span class="nav-count" id="navReportCount">0</span></button>
+        <button class="nav-item" data-view="map"><span class="nav-icon">🗺️</span> Live Civic Map</button>
+
+        <div class="nav-section-label">SDG 11 URBAN MODULES</div>
+        <button class="nav-item" data-view="accessibility"><span class="nav-icon">♿</span> Accessibility Navigator</button>
+        <button class="nav-item" data-view="parking"><span class="nav-icon">🚗</span> Smart Parking &amp; Safety</button>
+        <button class="nav-item" data-view="impact"><span class="nav-icon">📈</span> Civic Impact &amp; Insights</button>
+        <button class="nav-item" data-view="rewards"><span class="nav-icon">🏆</span> Rewards &amp; Leaderboard</button>
+        <button class="nav-item" data-view="helpline"><span class="nav-icon">📞</span> Assisted Helpline</button>
+        <button class="nav-item" data-view="govportals"><span class="nav-icon">🏛️</span> Official Gov Portals</button>
+        <button class="nav-item" data-view="cameradb"><span class="nav-icon">📷</span> Camera Database <span class="nav-count" id="navCameraCount">0</span></button>
+
+        <div class="nav-section-label" id="authorityNavLabel">GOVERNANCE &amp; OPS</div>
+        <button class="nav-item" data-view="authority" id="navAuthorityBtn"><span class="nav-icon">⚙️</span> Authority Operations</button>
+        <button class="nav-item" data-view="admindb" id="navAdminDbBtn" style="display:none;"><span class="nav-icon">🗃️</span> Complaint Database <span class="nav-count" id="navAdminDbCount">0</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Citizen Profile & Points Card -->
+        <div class="citizen-profile-card">
+          <div class="profile-avatar" id="userAvatar">JD</div>
+          <div class="profile-meta">
+            <b id="userName">Jordan Davis</b>
+            <small id="userBadgeTitle">SDG 11 Champion</small>
+          </div>
+          <div class="profile-points-pill" id="userPointsPill">85 pts</div>
+        </div>
+
+        <!-- UN SDG 11 Sustainable Cities Badge -->
+        <div class="sdg-badge-card">
+          <div class="sdg-icon-circle">11</div>
+          <div class="sdg-text">
+            <b>UN SDG 11 Compliant</b>
+            <small>Sustainable Cities &amp; Communities</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP CONTENT -->
+    <main class="main-content" id="mainContent">
+      <!-- TOP NAVIGATION BAR -->
+      <header class="topbar">
+        <div class="breadcrumb-area">
+          <b class="crumb-current" id="crumbCurrent">Overview</b>
+        </div>
+
+        <div class="topbar-right">
+          <!-- City Online Indicator -->
+          <div class="city-pulse">
+            <span class="pulse-dot"></span>
+            <span>9 DEPARTMENTS ACTIVE</span>
+          </div>
+
+          <!-- Accessibility Toolbar -->
+          <div class="a11y-toolbar" role="toolbar" aria-label="Accessibility settings">
+            <button class="a11y-btn" id="fontNormalBtn" title="Standard text size">A</button>
+            <button class="a11y-btn" id="fontLargeBtn" title="Enlarged text size">A+</button>
+          </div>
+
+          <!-- Quick Role Selector Dropdown (hidden, replaced by Admin Login) -->
+          <select class="role-selector" id="topRoleSelector" aria-label="Switch User Role" style="display:none;">
+            <option value="citizen">👤 Citizen View</option>
+            <option value="authority">🛡️ Authority Officer View</option>
+            <option value="admin">⚙️ System Administrator</option>
+          </select>
+
+          <!-- Admin Login Button (replaces bare role selector) -->
+          <button class="btn-secondary" id="adminLoginBtn" title="Admin / Officer Login" style="font-size:12px; padding:7px 13px; display:flex; align-items:center; gap:5px;">
+            <span id="adminLoginBtnIcon">🔐</span>
+            <span id="adminLoginBtnLabel">Admin Login</span>
+          </button>
+
+          <!-- Primary Report Action Button -->
+          <button class="btn-primary" id="topReportBtn">
+            <span class="btn-icon-plus">＋</span>
+            <span>Report Issue</span>
+          </button>
+
+          <!-- Track Complaint Button -->
+          <button class="btn-secondary" id="trackComplaintBtn" title="Track your complaint by Ticket ID or phone number" style="font-size:12.5px; padding:8px 14px; display:flex; align-items:center; gap:6px;">
+            <span>🔍</span>
+            <span>Track Complaint</span>
+          </button>
+
+          <!-- Help / Info Button -->
+          <button class="btn-icon-circle" id="helpModalBtn" title="About Smart Civic Connect" aria-label="Platform information">?</button>
+
+          <!-- Mobile Menu Toggle -->
+          <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle navigation menu">☰</button>
+        </div>
+      </header>
+
+      <!-- VIEW 1: OVERVIEW & DASHBOARD -->
+      <section class="view-container" id="view-overview">
+
+        <!-- Hero Section -->
+        <div class="hero-smart">
+          <div class="hero-content">
+            <div class="hero-tag"><span>✳</span> SDG 11 CIVIC GOVERNANCE PLATFORM</div>
+            <h1>One City. Every Voice.<br><span>Smarter Solutions.</span></h1>
+            <p>Smart Civic Connect bridges citizens and municipal authorities with AI-powered reporting, duplicate detection, transparent SLA timelines, and inclusive urban accessibility.</p>
+            <div class="hero-actions">
+              <button class="btn-teal" id="heroReportBtn"><span>＋</span> Submit Civic Complaint</button>
+              <button class="btn-secondary" id="heroMapBtn" style="color:#ffffff; border-color:rgba(255,255,255,0.25); background:rgba(255,255,255,0.08);">View Civic Heatmap →</button>
+            </div>
+            <div class="hero-badges-row">
+              <span><b>1,480+</b> Active Citizens</span>
+              <span>•</span>
+              <span><b>94.2%</b> Verified Repairs</span>
+              <span>•</span>
+              <span><b>Zero</b> Unresolved Hazards</span>
+            </div>
+          </div>
+
+          <!-- Radar Mini Art -->
+          <div class="hero-radar-art">
+            <div class="radar-header">
+              <span>LIVE MUNICIPAL RADAR</span>
+              <span id="heroLiveTime">UPDATING</span>
+            </div>
+            <div class="radar-canvas-sim">
+              <div class="radar-sweep"></div>
+              <div class="radar-pin p1" title="Urgent Hazard"></div>
+              <div class="radar-pin p2" title="In Progress"></div>
+              <div class="radar-pin p3" title="Pending Verification"></div>
+            </div>
+            <div class="radar-footer-stats">
+              <div class="radar-stat-item">
+                <b id="radarOpenCount">0</b>
+                <small>Open</small>
+              </div>
+              <div class="radar-stat-item">
+                <b id="radarProgressCount">0</b>
+                <small>Progress</small>
+              </div>
+              <div class="radar-stat-item">
+                <b id="radarResolvedCount">0</b>
+                <small>Resolved</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Metric Stats Grid -->
+        <div class="stats-grid-4">
+          <article class="stat-card">
+            <div class="stat-card-top">
+              <span class="stat-card-label">Open Complaints</span>
+              <span class="stat-card-icon amber">⏳</span>
+            </div>
+            <div class="stat-card-val" id="statOpenVal">0</div>
+            <div class="stat-card-foot">
+              <span class="trend-alert">● Active review</span> across 9 wards
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-top">
+              <span class="stat-card-label">Crews In Progress</span>
+              <span class="stat-card-icon blue">⚡</span>
+            </div>
+            <div class="stat-card-val" id="statProgressVal">0</div>
+            <div class="stat-card-foot">
+              <span>Ground municipal crews assigned</span>
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-top">
+              <span class="stat-card-label">Resolved This Month</span>
+              <span class="stat-card-icon emerald">✓</span>
+            </div>
+            <div class="stat-card-val" id="statResolvedVal">0</div>
+            <div class="stat-card-foot">
+              <span class="trend-up">↗ +24%</span> citizen verified fixes
+            </div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-top">
+              <span class="stat-card-label">Average Resolution SLA</span>
+              <span class="stat-card-icon purple">⏱️</span>
+            </div>
+            <div class="stat-card-val" id="statSlaVal">2.1 <small>days</small></div>
+            <div class="stat-card-foot">
+              <span>96.4% on-time department performance</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- QUICK ACTION CONSOLES (below stats) -->
+        <div class="home-consoles-row">
+
+          <!-- Track Complaint -->
+          <div class="home-console console-track">
+            <div class="console-header">
+              <span class="console-icon">🔍</span>
+              <div class="console-title">Track My Complaint</div>
+            </div>
+            <p class="console-desc">Enter your Ticket ID or phone number to see real-time status and field progress.</p>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+              <input type="text" id="homeTrackInput" class="form-control" placeholder="e.g. SCC-2841 or phone…" style="font-size:12px; padding:8px 10px;">
+              <button class="btn-teal" id="homeTrackBtn" style="white-space:nowrap; padding:8px 14px; font-size:12px; font-weight:700;">Track →</button>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <span style="font-size:10px; color:var(--text-muted);">Quick:</span>
+              <button class="doubt-chip" onclick="document.getElementById('homeTrackInput').value='SCC-2841'; document.getElementById('homeTrackBtn').click()">SCC-2841</button>
+              <button class="doubt-chip" onclick="document.getElementById('homeTrackInput').value='SCC-2840'; document.getElementById('homeTrackBtn').click()">SCC-2840</button>
+              <button class="doubt-chip" onclick="document.getElementById('homeTrackInput').value='SCC-2839'; document.getElementById('homeTrackBtn').click()">SCC-2839</button>
+            </div>
+          </div>
+
+          <!-- Report an Issue -->
+          <div class="home-console console-submit">
+            <div class="console-header">
+              <span class="console-icon">📋</span>
+              <div class="console-title">Report an Issue</div>
+            </div>
+            <p class="console-desc">Choose a category below to instantly launch the AI-assisted complaint filing form.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+              <button class="console-cat-btn" data-category="public-infra" data-sub="Potholes">🛣️ Pothole / Road</button>
+              <button class="console-cat-btn" data-category="sanitation" data-sub="Overflowing garbage bins">🗑️ Garbage Dump</button>
+              <button class="console-cat-btn" data-category="street-lighting" data-sub="Broken streetlights">💡 Streetlight</button>
+              <button class="console-cat-btn" data-category="water-drainage" data-sub="Water leakage">💧 Water Leak</button>
+            </div>
+            <button class="btn-teal" id="heroReportBtnConsole" style="width:100%; font-size:12px; padding:8px; font-weight:700;">＋ Full Report Form →</button>
+          </div>
+
+          <!-- Camera Evidence DB -->
+          <div class="home-console console-camera">
+            <div class="console-header">
+              <span class="console-icon">📷</span>
+              <div class="console-title">Camera Evidence DB</div>
+            </div>
+            <p class="console-desc">Browse, capture, and manage photo evidence linked to civic complaints.</p>
+            <div style="display:flex; flex-direction:column; gap:7px;">
+              <button class="btn-teal" id="consoleCameraDbBtn" style="width:100%; font-size:12px; padding:8px; font-weight:700;">📷 Open Camera Database</button>
+              <button class="btn-secondary" id="consoleMapBtn" style="width:100%; font-size:12px; padding:8px;">🗺️ View Live Civic Map</button>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line); text-align:center;">
+              <button id="consoleAdminDbBtn" style="background:none; border:none; font-size:11px; color:var(--text-muted); cursor:pointer; text-decoration:underline;">🔐 Admin / Database Access</button>
+            </div>
+          </div>
+
+        </div>
+
+        <section class="panel-card category-quick-panel" aria-labelledby="quickReportCategoriesTitle">
+          <div class="section-kicker">QUICK REPORT CATEGORIES</div>
+          <h2 class="section-title" id="quickReportCategoriesTitle">What needs municipal attention?</h2>
+          <p class="category-quick-description">Select an issue type to launch our AI-assisted reporting workflow.</p>
+
+          <div class="category-quick-grid">
+            <button class="cat-tile-btn" data-category="public-infra" data-sub="Potholes">
+              <img class="cat-tile-photo" src="images/category-photos/pothole.jpg" alt="Pothole in a city street" loading="lazy">
+              <b>Pothole</b>
+            </button>
+            <button class="cat-tile-btn" data-category="street-lighting" data-sub="Broken streetlights">
+              <img class="cat-tile-photo" src="images/category-photos/streetlight-broken.jpg" alt="Broken streetlight after a collision" loading="lazy">
+              <b>Streetlight</b>
+            </button>
+            <button class="cat-tile-btn" data-category="public-infra" data-sub="Damaged roads">
+              <img class="cat-tile-photo" src="images/category-photos/road-damage.jpg" alt="Pothole damaging a local road" loading="lazy">
+              <b>Road Damage</b>
+            </button>
+            <button class="cat-tile-btn" data-category="water-drainage" data-sub="Water leakage">
+              <img class="cat-tile-photo" src="images/category-photos/water-leak.jpg" alt="Water leakage from a damaged pipe" loading="lazy">
+              <b>Water Leak</b>
+            </button>
+            <button class="cat-tile-btn" data-category="sanitation" data-sub="Overflowing garbage bins">
+              <img class="cat-tile-photo" src="images/category-photos/garbage-overflow.jpg" alt="Rubbish overflowing from a public litter bin" loading="lazy">
+              <b>Garbage Dump</b>
+            </button>
+            <button class="cat-tile-btn" data-category="accessibility" data-sub="Blocked ramps">
+              <img class="cat-tile-photo" src="images/category-photos/blocked-ramp.jpg" alt="Snow blocking a wheelchair curb ramp" loading="lazy">
+              <b>Blocked Ramp</b>
+            </button>
+            <button class="cat-tile-btn" data-category="traffic-safety" data-sub="Illegal parking">
+              <img class="cat-tile-photo" src="images/category-photos/illegal-parking.jpg" alt="Vehicle parked across a sidewalk" loading="lazy">
+              <b>Illegal Parking</b>
+            </button>
+            <button class="cat-tile-btn" data-category="environmental" data-sub="Air-pollution hotspots">
+              <img class="cat-tile-photo" src="images/category-photos/pollution.jpg" alt="Air pollution hanging over a city" loading="lazy">
+              <b>Pollution</b>
+            </button>
+            <button class="cat-tile-btn" data-category="encroachment" data-sub="Shops blocking footpaths">
+              <img class="cat-tile-photo" src="images/category-photos/encroachment.jpg" alt="Street vendors and scooters narrowing a pedestrian sidewalk" loading="lazy">
+              <b>Encroachment</b>
+            </button>
+            <button class="cat-tile-btn" data-category="property-damage" data-sub="Broken park benches">
+              <span class="cat-tile-icon">🏛️</span>
+              <b>Property</b>
+            </button>
+          </div>
+
+          <p class="category-photo-credits">
+            Photos:
+            <a href="https://commons.wikimedia.org/wiki/File:A_pothole_in_Dilova_Street_in_Kyiv.jpg" target="_blank" rel="noopener noreferrer">Pothole</a> (CC0),
+            <a href="https://commons.wikimedia.org/wiki/File:Broken_lamppost_-_streetlight_on_A899_Livingston_Road_-_geograph.org.uk_-_957464.jpg" target="_blank" rel="noopener noreferrer">streetlight by Simon Johnston</a> (CC BY-SA 2.0),
+            <a href="https://commons.wikimedia.org/wiki/File:Pothole_on_local_Road_in_County_Monaghan.jpg" target="_blank" rel="noopener noreferrer">road</a> (CC0),
+            <a href="https://commons.wikimedia.org/wiki/File:BCA_pipe_burst_01_wetness.jpg" target="_blank" rel="noopener noreferrer">water leak</a> (public domain),
+            <a href="https://commons.wikimedia.org/wiki/File:Litter_bin_rubbish_Tottenham,_London,_England_1.jpg" target="_blank" rel="noopener noreferrer">garbage by Acabashi</a> (CC BY-SA 4.0),
+            <a href="https://commons.wikimedia.org/wiki/File:Ploughed_snow_blocks_curb_cuts.jpg" target="_blank" rel="noopener noreferrer">ramp by Ciara Ní Riain</a> (CC BY-SA 4.0),
+            <a href="https://commons.wikimedia.org/wiki/File:Suburbia_JC_walk_parking_jeh.jpg" target="_blank" rel="noopener noreferrer">parking by Jim.henderson</a> (CC0),
+            <a href="https://commons.wikimedia.org/wiki/File:Air_pollution_of_the_Tetovo_city_under_Shar_Mountain,_Macedonia.jpg" target="_blank" rel="noopener noreferrer">pollution by Делфина</a> (CC BY 4.0),
+            <a href="https://commons.wikimedia.org/wiki/File:DFC_1647_Street_vendors_sell_produce_and_snacks_along_a_busy_sidewalk_beside_a_row_of_parked_scooters_as_pedestrians_pass_by_in_a_bustling_market_street.jpg" target="_blank" rel="noopener noreferrer">encroachment by PattayaPatrol</a> (CC BY-SA 4.0).
+          </p>
+          <button class="btn-secondary category-taxonomy-btn" id="moreCategoriesBtn">View Detailed Taxonomy Form →</button>
+        </section>
+
+        <!-- Dashboard 2-Column Grid -->
+        <div class="dashboard-grid">
+          <!-- Left Column: Recent Reports Feed -->
+          <div class="panel-card">
+            <div class="panel-card-head">
+              <div>
+                <div class="section-kicker">NEIGHBORHOOD ACTION FEED</div>
+                <h2 class="section-title">Recent Civic Reports</h2>
+              </div>
+              <button class="btn-secondary" data-view="reports">Browse All Reports →</button>
+            </div>
+
+            <!-- Quick Filter Bar -->
+            <div class="filter-toolbar">
+              <div class="search-input-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="overviewSearchInput" placeholder="Search by title, location, ID or category..." aria-label="Search reports">
+              </div>
+              <select class="select-filter" id="overviewCategoryFilter" aria-label="Filter by category">
+                <option value="all">All 9 Categories</option>
+                <option value="public-infra">Public Infrastructure</option>
+                <option value="street-lighting">Street Lighting</option>
+                <option value="water-drainage">Water &amp; Drainage</option>
+                <option value="sanitation">Sanitation</option>
+                <option value="traffic-safety">Traffic &amp; Safety</option>
+                <option value="accessibility">Accessibility &amp; Inclusion</option>
+                <option value="environmental">Environmental</option>
+                <option value="encroachment">Encroachments</option>
+                <option value="property-damage">Public Property</option>
+              </select>
+              <select class="select-filter" id="overviewStatusFilter" aria-label="Filter by status">
+                <option value="all">All Statuses</option>
+                <option value="Open">Open</option>
+                <option value="In progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Citizen Verification">Verification Needed</option>
+              </select>
+            </div>
+
+            <!-- Feed List Container -->
+            <div class="report-feed" id="overviewReportList"></div>
+
+            <!-- Empty State -->
+            <div class="empty-state-box" id="overviewEmptyState" hidden>
+              <div class="empty-state-icon">🔍</div>
+              <h3>No complaints matched your search</h3>
+              <p>Try clearing filters or submit a new report for this issue.</p>
+              <button class="btn-primary" id="overviewCreateBtn">＋ Report New Issue</button>
+            </div>
+          </div>
+
+          <!-- Right Column: Municipal Alerts & Info -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Municipal Live Advisory -->
+            <div class="notice-card">
+              <div class="notice-card-header">
+                <span class="notice-badge">MUNICIPAL ADVISORY</span>
+                <small style="font-size:9.5px; color:var(--text-light);">TODAY, 09:30 AM</small>
+              </div>
+              <h4>Scheduled Monsoon Drain Desilting</h4>
+              <p>Municipal Engineering crews are desilting stormwater drains along Maple Avenue. Use alternate pedestrian walkways.</p>
+            </div>
+
+            <!-- SDG 11 Target Card -->
+            <div class="panel-card" style="background:linear-gradient(135deg, #f0fdf9, #fafffd); border-color:var(--teal-border);">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <span style="background:#f59e0b; color:#fff; font-weight:800; border-radius:4px; padding:2px 6px; font-size:10px;">SDG 11</span>
+                <b style="font-size:12px; color:var(--navy-800);">Sustainable Cities &amp; Communities</b>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); line-height:1.5; margin:0;">Target 11.2 (Accessible transport for persons with disabilities) &amp; Target 11.6 (Reduction of environmental impact &amp; municipal waste).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: ALL COMPLAINTS DIRECTORY -->
+      <section class="view-container" id="view-reports" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">MUNICIPAL COMPLAINTS DIRECTORY</div>
+            <h2 class="section-title">All Civic Reports (<span id="reportsListTotalCount">0</span>)</h2>
+            <p class="section-subtitle">Real-time repository of verified neighborhood concerns, escalation statuses, and community resolutions.</p>
+          </div>
+          <button class="btn-primary" id="reportsViewCreateBtn">＋ Submit New Complaint</button>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-toolbar" style="background:var(--surface); padding:14px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:16px;">
+          <div class="search-input-wrap" style="flex:1.5;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="reportsSearchInput" placeholder="Filter by keyword, title, location, ID, or officer notes..." aria-label="Search all reports">
+          </div>
+          <select class="select-filter" id="reportsCategoryFilter" aria-label="Filter by major category">
+            <option value="all">All 9 Categories</option>
+            <option value="public-infra">Public Infrastructure</option>
+            <option value="street-lighting">Street Lighting</option>
+            <option value="water-drainage">Water &amp; Drainage</option>
+            <option value="sanitation">Sanitation</option>
+            <option value="traffic-safety">Traffic &amp; Safety</option>
+            <option value="accessibility">Accessibility &amp; Inclusion</option>
+            <option value="environmental">Environmental</option>
+            <option value="encroachment">Encroachments</option>
+            <option value="property-damage">Public Property</option>
+          </select>
+          <select class="select-filter" id="reportsDeptFilter" aria-label="Filter by responsible department">
+            <option value="all">All Responsible Departments</option>
+            <option value="Roads & Municipal Engineering Dept">Roads &amp; Engineering</option>
+            <option value="Electrical & Power Department">Electrical &amp; Power</option>
+            <option value="Water Supply & Sewerage Board">Water &amp; Drainage</option>
+            <option value="Sanitation & Solid Waste Management">Sanitation &amp; Waste</option>
+            <option value="Traffic Police & Transport Authority">Traffic Police</option>
+            <option value="Accessibility & Public Works Dept">Accessibility &amp; PWD</option>
+            <option value="Environmental Protection Dept">Environment</option>
+            <option value="Town Planning & Enforcement Squad">Town Planning</option>
+            <option value="Municipal Asset Maintenance Division">Asset Maintenance</option>
+          </select>
+          <select class="select-filter" id="reportsStatusFilter" aria-label="Filter by status">
+            <option value="all">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="Verified">Verified</option>
+            <option value="Assigned">Assigned</option>
+            <option value="In progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Citizen Verification">Awaiting Verification</option>
+            <option value="Closed">Closed</option>
+          </select>
+          <select class="select-filter" id="reportsPriorityFilter" aria-label="Filter by priority">
+            <option value="all">All Severities</option>
+            <option value="Urgent">Urgent / Hazard</option>
+            <option value="High">High Priority</option>
+            <option value="Normal">Normal</option>
+          </select>
+          <select class="select-filter" id="reportsSortFilter" aria-label="Sort reports">
+            <option value="newest">Sort: Newest First</option>
+            <option value="csi">Sort: Highest CSI Score</option>
+            <option value="votes">Sort: Most Supported</option>
+            <option value="overdue">Sort: SLA Overdue First</option>
+          </select>
+        </div>
+
+        <div class="report-feed" id="reportsListFeed"></div>
+
+        <div class="empty-state-box" id="reportsEmptyState" hidden>
+          <div class="empty-state-icon">📂</div>
+          <h3>No matching complaints found</h3>
+          <p>Try resetting the search terms or filters above.</p>
+        </div>
+      </section>
+
+      <!-- VIEW 3: LIVE CIVIC MAP & HEATMAP -->
+      <section class="view-container" id="view-map" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">GEOSPATIAL COMMAND CENTER</div>
+            <h2 class="section-title">Live Civic Map &amp; Hotspots</h2>
+            <p class="section-subtitle">Real-time OpenStreetMap visualization of neighborhood hazards, progress pins, and recurring problem corridors.</p>
+          </div>
+          <button class="btn-primary" id="mapViewReportBtn">＋ Report from Map</button>
+        </div>
+
+        <div class="map-view-card">
+          <!-- Map Filter Controls -->
+          <div class="map-control-bar">
+            <div class="map-filters">
+              <select class="select-filter" id="mapStatusFilter" aria-label="Filter map by status">
+                <option value="all">All Status Pins</option>
+                <option value="urgent">Urgent Hazards Only</option>
+                <option value="Open">Open Only</option>
+                <option value="In progress">In Progress</option>
+                <option value="Resolved">Resolved Pins</option>
+              </select>
+              <select class="select-filter" id="mapCategoryFilter" aria-label="Filter map by category">
+                <option value="all">All Categories</option>
+                <option value="public-infra">Public Infrastructure</option>
+                <option value="street-lighting">Street Lighting</option>
+                <option value="water-drainage">Water &amp; Drainage</option>
+                <option value="sanitation">Sanitation</option>
+                <option value="accessibility">Accessibility Obstacles</option>
+                <option value="traffic-safety">Traffic &amp; Parking</option>
+              </select>
+              <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" id="mapHotspotsToggle" checked>
+                <span>Show Civic Hotspot Clusters</span>
+              </label>
+            </div>
+            <button class="btn-secondary" id="mapLocateMeBtn" title="Center on your GPS position">📍 Locate Me</button>
+            <button class="btn-secondary" id="mapFitAllBtn" title="Fit all city reports in view">🔍 Full City</button>
+            <button class="btn-secondary" id="mapResetZoomBtn" title="Zoom to Northwood street level">🎯 Zoom Street Level</button>
+          </div>
+
+          <!-- Leaflet Map Container -->
+          <div id="civicMapStage" class="map-leaflet-stage" role="region" aria-label="Interactive Civic Map"></div>
+
+          <!-- Map Legend -->
+          <div class="map-legend-bar">
+            <span style="font-weight:700; color:var(--text-main);">MAP LEGEND:</span>
+            <span class="legend-item"><span class="legend-dot red"></span> Urgent Hazard (CSI &gt; 80)</span>
+            <span class="legend-item"><span class="legend-dot amber"></span> High Priority</span>
+            <span class="legend-item"><span class="legend-dot blue"></span> In Progress (Crew Active)</span>
+            <span class="legend-item"><span class="legend-dot green"></span> Resolved (Verified Fix)</span>
+            <span class="legend-item"><span class="legend-dot purple"></span> Accessibility Barrier</span>
+            <span style="margin-left:auto; font-size:10px;">Powered by OpenStreetMap, HOT &amp; Leaflet</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: ACCESSIBILITY NAVIGATOR (SDG 11.2) -->
+      <section class="view-container" id="view-accessibility" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">SDG 11.2 URBAN INCLUSIVITY</div>
+            <h2 class="section-title">Accessibility Navigator &amp; Barrier Radar</h2>
+            <p class="section-subtitle">Dedicated mobility navigator identifying wheelchair ramps, tactile paving, operational metro elevators, and active barrier alerts.</p>
+          </div>
+          <button class="btn-primary" id="reportAccessibilityBtn">♿ Report Accessibility Barrier</button>
+        </div>
+
+        <!-- Future Scope Notice Banner -->
+        <div class="notice-card" style="border-left-color:var(--purple-500); background:#faf5ff;">
+          <div class="notice-card-header">
+            <span class="notice-badge" style="background:var(--purple-100); color:var(--purple-800);">INCLUSIVE MOBILITY PROTOTYPE</span>
+            <small style="color:var(--purple-800); font-weight:700;">SDG TARGET 11.2</small>
+          </div>
+          <h4>Planned Real-time Infrastructure &amp; Routing Telemetry</h4>
+          <p>This prototype demonstrates community-reported accessibility conditions. Future phases integrate with transit telemetry and pedestrian LIDAR mapping to verify tactile routes and ramp inclines.</p>
+        </div>
+
+        <div class="submodule-grid">
+          <!-- Active Accessibility Alerts -->
+          <div class="submodule-card">
+            <h3><span>⚠️</span> Reported Accessibility Barriers</h3>
+            <p style="font-size:11.5px; color:var(--text-muted);">Obstacles currently obstructing wheelchair users, visually impaired pedestrians, or elderly citizens.</p>
+            <div class="report-feed" id="accessibilityBarriersList"></div>
+          </div>
+
+          <!-- Verified Accessible City Assets -->
+          <div class="submodule-card">
+            <h3><span>♿</span> Verified Inclusive City Infrastructure</h3>
+            <p style="font-size:11.5px; color:var(--text-muted);">Mapped wheelchair ramps, working elevators, and accessible civic centers.</p>
+            <div class="report-feed" id="accessibleAssetsList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: SMART PARKING MONITOR -->
+      <section class="view-container" id="view-parking" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">URBAN MOBILITY &amp; SAFETY</div>
+            <h2 class="section-title">Smart Parking &amp; Enforcement Radar</h2>
+            <p class="section-subtitle">Monitor designated disabled parking bays, municipal lot occupancies, and reported footpath encroachment violations.</p>
+          </div>
+          <button class="btn-primary" id="reportParkingViolationBtn">🚗 Report Parking Violation</button>
+        </div>
+
+        <!-- Prototype Simulation Notice -->
+        <div class="notice-card" style="border-left-color:var(--blue-500); background:#f0f9ff; margin-bottom:16px;">
+          <div class="notice-card-header">
+            <span class="notice-badge" style="background:var(--blue-100); color:var(--blue-800);">IOT DEMONSTRATION MODULE</span>
+            <small style="color:var(--blue-800); font-weight:700;">SENSOR TELEMETRY</small>
+          </div>
+          <h4>Simulated Real-Time Parking Bay Occupancy</h4>
+          <p>Sensor telemetry is simulated for demonstration. Citizen reports trigger immediate verification by Municipal Traffic Enforcement squads.</p>
+        </div>
+
+        <!-- Disabled Parking Bays Grid -->
+        <div class="panel-card" style="margin-bottom:20px;">
+          <h3 style="font-size:15px; margin-bottom:4px;">Designated Accessible / Disabled Parking Bays</h3>
+          <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">Real-time bay telemetry protecting universal accessibility spaces.</p>
+          <div class="parking-bay-list" id="parkingBayList"></div>
+        </div>
+
+        <!-- Active Illegal Parking Reports -->
+        <div class="panel-card">
+          <div class="panel-card-head">
+            <div>
+              <h3 style="font-size:15px;">Active Illegal Parking &amp; Obstruction Complaints</h3>
+              <p style="font-size:11.5px; color:var(--text-muted);">Reports under review by City Traffic Police.</p>
+            </div>
+          </div>
+          <div class="report-feed" id="parkingViolationsList"></div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: CIVIC IMPACT & PREDICTIVE INSIGHTS -->
+      <section class="view-container" id="view-impact" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">PREDICTIVE CIVIC ANALYTICS</div>
+            <h2 class="section-title">Civic Impact &amp; Predictive Maintenance</h2>
+            <p class="section-subtitle">Aggregated performance indicators aligned with UN SDG 11 and trend-based machine learning estimates for preventive municipal planning.</p>
+          </div>
+        </div>
+
+        <!-- 4-Stat Overview -->
+        <div class="stats-grid-4">
+          <article class="stat-card">
+            <div class="stat-card-label">Overall Resolution Rate</div>
+            <div class="stat-card-val" id="impactResolutionRate">0%</div>
+            <div class="stat-card-foot"><span class="trend-up">↗ +18%</span> verified closure rate</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Community Participation</div>
+            <div class="stat-card-val" id="impactCommunityVotes">0</div>
+            <div class="stat-card-foot">Citizen votes &amp; repair verifications</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Accessibility Obstacles Fixed</div>
+            <div class="stat-card-val" id="impactA11yFixed">0</div>
+            <div class="stat-card-foot">Inclusive infrastructure restorations</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">SLA Compliance Rate</div>
+            <div class="stat-card-val" id="impactSlaRate">96.8%</div>
+            <div class="stat-card-foot">Cases resolved within SLA targets</div>
+          </article>
+        </div>
+
+        <!-- Predictive Insights Cards Section -->
+        <div class="panel-card" style="margin-top:20px;">
+          <div class="section-kicker">AUTOMATED PATTERN DETECTION</div>
+          <h3 class="section-title" style="font-size:18px;">Predictive Maintenance Alerts</h3>
+          <p class="section-subtitle">Data-driven trend estimates derived from stored complaint clusters, seasonal weather vulnerability, and recurring infrastructure failure points.</p>
+
+          <div class="insights-feed" id="predictiveInsightsFeed"></div>
+        </div>
+      </section>
+
+      <!-- VIEW 7: REWARDS & COMMUNITY LEADERBOARD -->
+      <section class="view-container" id="view-rewards" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">CITIZEN EMPOWERMENT</div>
+            <h2 class="section-title">Civic Rewards &amp; Community Champions</h2>
+            <p class="section-subtitle">Earn verified civic points for reporting hazards, supporting neighbors, and validating repair quality.</p>
+          </div>
+        </div>
+
+        <!-- User Points Banner -->
+        <div class="rewards-overview-banner">
+          <div>
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#a2cfc1; margin-bottom:4px;">Your Civic Standing</div>
+            <h3 style="font-size:22px; color:#ffffff; margin-bottom:6px;">Jordan Davis</h3>
+            <div class="points-counter"><b id="rewardsBigScore">85</b> <small style="font-size:14px; color:#cbe7de;">Civic Points</small></div>
+          </div>
+          <div class="badges-rack">
+            <div class="badge-pill">🏅 SDG 11 Champion</div>
+            <div class="badge-pill">♿ Accessibility Guardian</div>
+            <div class="badge-pill">🛡️ First Responder</div>
+            <div class="badge-pill">🌿 Clean City Hero</div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="panel-card">
+          <div class="panel-card-head">
+            <div>
+              <h3 style="font-size:16px;">Monthly Neighborhood Leaderboard</h3>
+              <p style="font-size:11.5px; color:var(--text-muted);">Top active residents building a cleaner, safer, more inclusive district.</p>
+            </div>
+            <span class="notice-badge">UPDATED LIVE</span>
+          </div>
+
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Resident</th>
+                <th>Reports Filed</th>
+                <th>Repairs Verified</th>
+                <th>SDG Badge</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTbody">
+              <tr>
+                <td class="leaderboard-rank">#1</td>
+                <td><b>Maya J.</b></td>
+                <td>14</td>
+                <td>9</td>
+                <td><span class="badge-pill" style="font-size:9.5px; padding:2px 8px;">🏅 SDG 11 Champion</span></td>
+                <td><b>240 pts</b></td>
+              </tr>
+              <tr>
+                <td class="leaderboard-rank">#2</td>
+                <td><b>Jordan Davis (You)</b></td>
+                <td>6</td>
+                <td>4</td>
+                <td><span class="badge-pill" style="font-size:9.5px; padding:2px 8px;">♿ Accessibility Guardian</span></td>
+                <td><b>85 pts</b></td>
+              </tr>
+              <tr>
+                <td class="leaderboard-rank">#3</td>
+                <td><b>Sam R.</b></td>
+                <td>5</td>
+                <td>3</td>
+                <td><span class="badge-pill" style="font-size:9.5px; padding:2px 8px;">🌿 Clean City Hero</span></td>
+                <td><b>65 pts</b></td>
+              </tr>
+              <tr>
+                <td class="leaderboard-rank">#4</td>
+                <td><b>Alex T.</b></td>
+                <td>4</td>
+                <td>2</td>
+                <td><span class="badge-pill" style="font-size:9.5px; padding:2px 8px;">🛡️ First Responder</span></td>
+                <td><b>45 pts</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIEW 8: ASSISTED HELPLINE & CALL CENTER -->
+      <section class="view-container" id="view-helpline" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">INCLUSIVE ACCESS &amp; TELEPHONE HELPLINE</div>
+            <h2 class="section-title">Assisted Civic Helpline &amp; Care Portal</h2>
+            <p class="section-subtitle">Ensure citizens without smartphones or internet access can register complaints through our dedicated telephone call center.</p>
+          </div>
+        </div>
+
+        <!-- Helpline Banner with Click-to-Call -->
+        <div class="helpline-banner">
+          <div>
+            <div style="font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#95c5b4; margin-bottom:6px;">MUNICIPAL TOLL-FREE CIVIC HELPLINE</div>
+            <h2 style="font-size:26px; color:#ffffff; margin-bottom:6px;">1800-425-CIVIC (1800-425-24842)</h2>
+            <p style="font-size:12px; color:#cde6dd; max-width:540px; margin:0;">Operational 24/7 in English, Telugu, and Hindi. Operators register complaints, send SMS status updates, and escalate urgent safety hazards.</p>
+          </div>
+          <a href="tel:180042524842" class="helpline-phone-btn">
+            <span>📞</span> Call Helpline Now
+          </a>
+        </div>
+
+        <!-- Operator Registration Form -->
+        <div class="panel-card">
+          <div class="section-kicker">OPERATOR COMPLAINT REGISTRATION</div>
+          <h3 style="font-size:16px; margin-bottom:4px;">Register Complaint on Behalf of Caller</h3>
+          <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:16px;">This portal allows helpline operators to register complaints dictated over telephone, generating instant SMS acknowledgement tokens.</p>
+
+          <form id="helplineForm">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Caller Full Name <span class="req">*</span></label>
+                <input type="text" class="form-control" name="callerName" placeholder="e.g. Ramesh Kumar" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Caller Phone Number (For SMS Updates) <span class="req">*</span></label>
+                <input type="tel" class="form-control" name="callerPhone" placeholder="e.g. +91 98765 43210" required>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Issue Major Category <span class="req">*</span></label>
+                <select class="form-control" name="helplineCategory" id="helplineCategory" required>
+                  <option value="">Select Category</option>
+                  <option value="public-infra">Public Infrastructure &amp; Roads</option>
+                  <option value="street-lighting">Street Lighting &amp; Electricity</option>
+                  <option value="water-drainage">Water &amp; Drainage</option>
+                  <option value="sanitation">Sanitation &amp; Waste</option>
+                  <option value="traffic-safety">Traffic &amp; Public Safety</option>
+                  <option value="accessibility">Accessibility &amp; Inclusive Infrastructure</option>
+                  <option value="environmental">Environmental Issues</option>
+                  <option value="encroachment">Encroachments &amp; Zoning</option>
+                  <option value="property-damage">Public Property Damage</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Specific Issue Subcategory <span class="req">*</span></label>
+                <select class="form-control" name="helplineSubcategory" id="helplineSubcategory" required>
+                  <option value="">Select Category First</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Street Address &amp; Ward <span class="req">*</span></label>
+                <input type="text" class="form-control" name="helplineLocation" placeholder="e.g. Near Miyapur Metro Station, Ward 12" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nearby Landmark <span class="opt">OPTIONAL</span></label>
+                <input type="text" class="form-control" name="helplineLandmark" placeholder="e.g. Opposite State Bank ATM">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Caller's Description &amp; Operator Notes <span class="req">*</span></label>
+              <textarea class="form-control" name="helplineDescription" rows="3" placeholder="Enter detailed notes dictated by caller..." required></textarea>
+              <div class="helpline-ai-tools">
+                <button type="button" class="btn-secondary" id="helplineAiAnalyzeBtn">🤖 Analyze Caller Notes</button>
+                <span id="helplineAiStatus" role="status" aria-live="polite">AI can suggest a category and urgency from the caller's notes.</span>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Urgency Level</label>
+                <select class="form-control" name="helplinePriority">
+                  <option value="Normal">Normal</option>
+                  <option value="High">High Priority</option>
+                  <option value="Urgent">Urgent / Safety Hazard</option>
+                </select>
+              </div>
+              <div class="form-group" style="display:flex; align-items:flex-end;">
+                <button type="submit" class="btn-teal" style="width:100%; height:38px;">Register &amp; Dispatch SMS Acknowledgement</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- SMS Simulation Box -->
+          <div id="helplineSmsPreview" style="margin-top:16px; display:none;" class="notice-card">
+            <div class="notice-card-header">
+              <span class="notice-badge" style="background:var(--emerald-100); color:var(--emerald-800);">SMS DISPATCHED</span>
+              <small id="smsTime">JUST NOW</small>
+            </div>
+            <p id="smsContent" style="font-family:monospace; font-size:11.5px; color:var(--navy-900);"></p>
+          </div>
+        </div>
+
+        <div class="panel-card helpline-call-db">
+          <div class="panel-card-head">
+            <div>
+              <div class="section-kicker">AI HELPLINE DATABASE</div>
+              <h3 style="font-size:16px; margin-bottom:4px;">Call Management</h3>
+              <p style="font-size:11.5px; color:var(--text-muted);">Review AI-assisted triage, track call follow-ups, and update the status linked to each ticket.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid-4 helpline-call-stats">
+            <article class="stat-card">
+              <div class="stat-card-label">Logged Calls</div>
+              <div class="stat-card-val" id="helplineCallTotal">0</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">New</div>
+              <div class="stat-card-val" id="helplineCallNew">0</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">Follow-up</div>
+              <div class="stat-card-val" id="helplineCallFollowUp">0</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-card-label">Escalated</div>
+              <div class="stat-card-val" id="helplineCallEscalated">0</div>
+            </article>
+          </div>
+
+          <div class="helpline-call-toolbar">
+            <input type="search" class="form-control" id="helplineCallSearch" placeholder="Search caller, ticket, issue, or location..." aria-label="Search helpline calls">
+            <select class="form-control" id="helplineCallStatusFilter" aria-label="Filter calls by status">
+              <option value="all">All call statuses</option>
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Follow-up">Follow-up</option>
+              <option value="Escalated">Escalated</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+
+          <div class="helpline-call-table-wrap" id="helplineCallTableWrap">
+            <table class="admin-db-table">
+              <thead>
+                <tr>
+                  <th>Call / Ticket</th>
+                  <th>Caller</th>
+                  <th>Issue</th>
+                  <th>Priority</th>
+                  <th>AI Triage</th>
+                  <th>Received</th>
+                  <th>Call Status</th>
+                </tr>
+              </thead>
+              <tbody id="helplineCallRows"></tbody>
+            </table>
+          </div>
+          <div class="empty-state-box helpline-call-empty" id="helplineCallEmptyState" hidden>
+            <div class="empty-state-icon">📞</div>
+            <h3>No matching helpline calls</h3>
+            <p>Register a caller above or adjust the search and status filter.</p>
+          </div>
+          <p class="helpline-call-storage-note">Call records are stored in this browser only. Phone-call audio is not recorded.</p>
+        </div>
+      </section>
+
+      <!-- VIEW: OFFICIAL GOVERNMENT PORTALS & DATA SHARING GATEWAY -->
+      <section class="view-container" id="view-govportals" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">MUNICIPAL GRIEVANCE GATEWAY &amp; DATA SHARING</div>
+            <h2 class="section-title">Official Government Portals &amp; Dispatch Gateway</h2>
+            <p class="section-subtitle">Bridge Smart Civic Connect with official Greater Hyderabad Municipal Corporation (GHMC), Telangana State, and Central Government grievance redressal systems.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-secondary" id="exportGovJsonBtn">📥 Export Municipal Batch (JSON)</button>
+            <button class="btn-teal" id="exportGovCsvBtn">📊 Export Grievance Report (CSV)</button>
+          </div>
+        </div>
+
+        <!-- Institutional Integration Transparency Banner -->
+        <div class="notice-card" style="border-left-color:var(--teal-500); background:#f0fdf9; margin-bottom:18px;">
+          <div class="notice-card-header">
+            <span class="notice-badge" style="background:var(--teal-light); color:var(--teal-600);">OFFICIAL PORTAL INTEROPERABILITY</span>
+            <small style="color:var(--teal-600); font-weight:700;">DATA DISPATCH GATEWAY</small>
+          </div>
+          <h4>Cross-Platform Municipal Integration &amp; Docket Cross-Referencing</h4>
+          <p>Smart Civic Connect acts as an AI-powered frontline filter. When complaints are verified, they can be formatted into standardized grievance dossiers, forwarded to official municipal e-complaint portals, and cross-tracked using official government docket tokens.</p>
+        </div>
+
+        <!-- 7 Official Government Portals Cards Grid -->
+        <div class="gov-portal-grid">
+          <!-- 1. GHMC -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">🏛️</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">GHMC — Greater Hyderabad</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">Greater Hyderabad Municipal Corporation</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">Primary municipal portal for civic grievances across Hyderabad. Handles road maintenance, streetlights, municipal garbage, and public spaces.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Roads &amp; Potholes</span>
+                <span class="gov-portal-tag">Street Lighting</span>
+                <span class="gov-portal-tag">Sanitation</span>
+                <span class="gov-portal-tag">Municipal Parks</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <a href="https://twitter.com/CommissionrGHMC" target="_blank" rel="noopener noreferrer" style="font-size:11px; color:var(--text-muted);">@CommissionrGHMC on X ↗</a>
+              <a href="https://ghmc.gov.in/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open GHMC Portal ↗</a>
+            </div>
+          </article>
+
+          <!-- 2. Telangana CDMA eMunicipal -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">🏢</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">Telangana CDMA Smart Governance</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">Municipal Administration &amp; Urban Development</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">State portal for municipal administration, urban civic services, town planning violations, and building permissions across Telangana.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Town Planning</span>
+                <span class="gov-portal-tag">Footpath Encroachments</span>
+                <span class="gov-portal-tag">Urban Development</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <a href="https://www.telangana.gov.in/departments/municipal-administration-urban-development/" target="_blank" rel="noopener noreferrer" style="font-size:11px; color:var(--text-muted);">Dept Info ↗</a>
+              <a href="https://emunicipal.telangana.gov.in/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open eMunicipal Portal ↗</a>
+            </div>
+          </article>
+
+          <!-- 3. Telangana Prajavani -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">⚖️</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">Telangana Prajavani Grievance Portal</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">Praja Bhavan &amp; Centre for Good Governance</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">Chief Minister's direct public grievance redressal portal. Best suited for overdue cases, supervisor escalations, and multi-department civic issues.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Public Grievances</span>
+                <span class="gov-portal-tag">Inter-Departmental</span>
+                <span class="gov-portal-tag">Escalated Overdue Cases</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <span style="font-size:11px; color:var(--text-muted);">Toll-Free Grievance Cell</span>
+              <a href="https://prajavani.cgg.gov.in/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open Prajavani Portal ↗</a>
+            </div>
+          </article>
+
+          <!-- 4. CPGRAMS Central Grievance -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">🇮🇳</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">CPGRAMS — Central Government</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">DARPG Central Public Grievance Portal</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">National portal allowing citizens to submit grievances to central ministries, National Highways Authority (NHAI), railways, and environmental agencies.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">National Highways</span>
+                <span class="gov-portal-tag">Railway Stations</span>
+                <span class="gov-portal-tag">Environmental Hazards</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <span style="font-size:11px; color:var(--text-muted);">Central Govt Portal</span>
+              <a href="https://pgportal.gov.in/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open CPGRAMS Portal ↗</a>
+            </div>
+          </article>
+
+          <!-- 5. MyCURE GHMC Mobile App -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">📱</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">MyCURE — Hyderabad Civic App</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">GHMC Real-Time Complaint Tracking App</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">GHMC's mobile civic application designed to track and resolve road issues, sanitation, and streetlights with real-time ground crew dispatch.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Real-time Ground Crews</span>
+                <span class="gov-portal-tag">Potholes</span>
+                <span class="gov-portal-tag">Sanitation</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <span style="font-size:11px; color:var(--text-muted);">Mobile Platform</span>
+              <a href="https://play.google.com/store/search?q=MyCURE+GHMC&c=apps" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Find MyCURE App ↗</a>
+            </div>
+          </article>
+
+          <!-- 6. Swachhata-MoHUA -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">🧹</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">Swachhata-MoHUA (Swachh City)</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">Ministry of Housing &amp; Urban Affairs</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">Official Government of India sanitation grievance platform focusing on garbage dumps, uncleaned public toilets, and municipal solid waste management.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Garbage Dumps</span>
+                <span class="gov-portal-tag">Public Toilets</span>
+                <span class="gov-portal-tag">Biomedical Waste</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <a href="https://play.google.com/store/apps/details?id=com.ichangemycity.swachhbharat" target="_blank" rel="noopener noreferrer" style="font-size:11px; color:var(--text-muted);">Android App ↗</a>
+              <a href="https://www.swachh.city/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open Swachh City ↗</a>
+            </div>
+          </article>
+
+          <!-- 7. HMWSSB Hyderabad Water Board -->
+          <article class="gov-portal-card">
+            <div>
+              <div class="gov-portal-card-top">
+                <div class="gov-portal-icon">🚰</div>
+                <div>
+                  <h3 style="font-size:15px; margin:0 0 2px;">HMWSSB — Hyderabad Water Board</h3>
+                  <small style="color:var(--text-muted); font-size:11px;">Hyderabad Metropolitan Water Supply &amp; Sewerage Board</small>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">Dedicated official water and drainage board for reporting drinking water leaks, burst pipelines, sewage overflow, and open/damaged manhole covers.</p>
+              <div class="gov-portal-tags">
+                <span class="gov-portal-tag">Water Leakage</span>
+                <span class="gov-portal-tag">Pipeline Bursts</span>
+                <span class="gov-portal-tag">Sewage Overflow</span>
+                <span class="gov-portal-tag">Open Manholes</span>
+              </div>
+            </div>
+            <div class="gov-portal-actions">
+              <a href="https://play.google.com/store/apps/details?id=com.hyderabadwater.hmwssb" target="_blank" rel="noopener noreferrer" style="font-size:11px; color:var(--text-muted);">Citizen App ↗</a>
+              <a href="https://www.hyderabadwater.gov.in/" target="_blank" rel="noopener noreferrer" class="gov-link-btn">Open HMWSSB Portal ↗</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- VIEW: CAMERA EVIDENCE DATABASE & MEDIA VAULT -->
+      <section class="view-container" id="view-cameradb" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">OPTICAL TELEMETRY &amp; MEDIA VAULT</div>
+            <h2 class="section-title">Camera Evidence Database</h2>
+            <p class="section-subtitle">Real-time repository of field camera captures, citizen hazard snapshots, and verified municipal repair proof photographs.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-primary" id="cameradbLaunchCamBtn">📸 Launch Live Camera</button>
+            <button class="btn-secondary" id="cameradbUploadBtn">📂 Upload Photo</button>
+            <button class="btn-teal" id="cameradbExportManifestBtn">📥 Export JSON Manifest</button>
+            <input type="file" id="cameradbFileInput" accept="image/*" style="display:none;">
+          </div>
+        </div>
+
+        <!-- 4-Stat Grid for Camera DB -->
+        <div class="stats-grid-4">
+          <article class="stat-card">
+            <div class="stat-card-label">Total Camera Captures</div>
+            <div class="stat-card-val" id="camStatTotal">0</div>
+            <div class="stat-card-foot">Indexed field photographs</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Geotagged Locations</div>
+            <div class="stat-card-val" id="camStatGeotagged">0</div>
+            <div class="stat-card-foot"><span class="trend-up">100%</span> GPS calibrated</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Repair Verifications</div>
+            <div class="stat-card-val" id="camStatRepairs">0</div>
+            <div class="stat-card-foot">Before &amp; After closure proofs</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Evidence Storage</div>
+            <div class="stat-card-val" id="camStatStorage">2.4 <small>MB</small></div>
+            <div class="stat-card-foot">Local Indexed/Secure Storage</div>
+          </article>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-toolbar" style="background:var(--surface); padding:14px; border:1px solid var(--line); border-radius:var(--radius-sm); margin:16px 0;">
+          <div class="search-input-wrap" style="flex:1.5;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="cameradbSearchInput" placeholder="Search evidence by title, ticket ID, location, or landmark..." aria-label="Search camera database">
+          </div>
+          <select class="select-filter" id="cameradbCategoryFilter" aria-label="Filter by category">
+            <option value="all">All Categories</option>
+            <option value="public-infra">Public Infrastructure</option>
+            <option value="street-lighting">Street Lighting</option>
+            <option value="water-drainage">Water &amp; Drainage</option>
+            <option value="sanitation">Sanitation</option>
+            <option value="accessibility">Accessibility Barriers</option>
+            <option value="traffic-safety">Traffic &amp; Parking</option>
+            <option value="property-damage">Public Property</option>
+          </select>
+          <select class="select-filter" id="cameradbTypeFilter" aria-label="Filter by evidence type">
+            <option value="all">All Evidence Types</option>
+            <option value="complaint">Citizen Complaint Evidence</option>
+            <option value="repair">Municipal Repair Proof</option>
+          </select>
+          <select class="select-filter" id="cameradbSortFilter" aria-label="Sort photos">
+            <option value="newest">Newest Captures First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="cameradb-gallery-grid" id="cameradbGalleryGrid"></div>
+
+        <!-- Empty State -->
+        <div class="empty-state-box" id="cameradbEmptyState" hidden>
+          <div class="empty-state-icon">📷</div>
+          <h3>No camera photos matched your filter</h3>
+          <p>Take a new photo with the camera or upload evidence to populate the database.</p>
+          <button class="btn-primary" id="cameradbEmptyActionBtn">📸 Take Field Photo Now</button>
+        </div>
+      </section>
+
+      <!-- VIEW 9: AUTHORITY & ADMIN OPERATIONS CENTER -->
+      <section class="view-container" id="view-authority" hidden>
+      </section>
+
+      <!-- VIEW 10: ADMIN COMPLAINT DATABASE (Admin Only) -->
+      <section class="view-container" id="view-admindb" hidden>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">🗃️ SECURE ADMIN DATABASE</div>
+            <h2 class="section-title">Complaint Database Management</h2>
+            <p class="section-subtitle">Full indexed database of all civic complaints. Admins can search, filter, export, update status, and delete records.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-teal" id="adminDbExportJsonBtn">📥 Export JSON</button>
+            <button class="btn-teal" id="adminDbExportCsvBtn">📊 Export CSV</button>
+            <button class="btn-secondary" id="adminDbRefreshBtn">🔄 Refresh</button>
+            <button class="btn-danger" id="adminLogoutBtn">🚪 Logout</button>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-grid-4" style="margin-bottom:16px;">
+          <article class="stat-card">
+            <div class="stat-card-label">Total Complaints</div>
+            <div class="stat-card-val" id="adminStatTotal">0</div>
+            <div class="stat-card-foot">All time submissions</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Active / In Progress</div>
+            <div class="stat-card-val" id="adminStatActive">0</div>
+            <div class="stat-card-foot">Requiring field action</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">SLA Breached</div>
+            <div class="stat-card-val" id="adminStatOverdue" style="color:#ef4444;">0</div>
+            <div class="stat-card-foot">Escalation required</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Resolved</div>
+            <div class="stat-card-val" id="adminStatResolved">0</div>
+            <div class="stat-card-foot">Verified & closed</div>
+          </article>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="filter-toolbar" style="background:var(--surface); padding:14px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:16px;">
+          <div class="search-input-wrap" style="flex:2;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="adminDbSearchInput" placeholder="Search by Ticket ID, title, location, author, phone, or department…">
+          </div>
+          <select class="select-filter" id="adminDbStatusFilter">
+            <option value="all">All Statuses</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Acknowledged">Acknowledged</option>
+            <option value="In progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+          <select class="select-filter" id="adminDbCategoryFilter">
+            <option value="all">All Categories</option>
+            <option value="public-infra">Public Infrastructure</option>
+            <option value="street-lighting">Street Lighting</option>
+            <option value="water-drainage">Water &amp; Drainage</option>
+            <option value="sanitation">Sanitation</option>
+            <option value="traffic-safety">Traffic &amp; Safety</option>
+            <option value="accessibility">Accessibility</option>
+            <option value="environmental">Environmental</option>
+            <option value="encroachment">Encroachment</option>
+          </select>
+          <select class="select-filter" id="adminDbPriorityFilter">
+            <option value="all">All Priorities</option>
+            <option value="Emergency">Emergency</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select class="select-filter" id="adminDbSortFilter">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="priority">Highest Priority</option>
+            <option value="votes">Most Votes</option>
+            <option value="overdue">SLA Overdue</option>
+          </select>
+        </div>
+
+        <!-- Database Table / Cards -->
+        <div id="adminDbTableContainer"></div>
+
+        <!-- Empty State -->
+        <div id="adminDbEmptyState" style="display:none; text-align:center; padding:48px; color:var(--text-muted);">
+          <div style="font-size:40px;">🗃️</div>
+          <h3 style="margin-top:12px;">No records match your filter</h3>
+          <p style="font-size:12px;">Try changing your search or filter criteria.</p>
+        </div>
+      </section>
+        <div class="panel-card-head">
+          <div>
+            <div class="section-kicker">MUNICIPAL GOVERNANCE CONSOLE</div>
+            <h2 class="section-title">Authority &amp; Administrator Command Hub</h2>
+            <p class="section-subtitle">Oversee department workloads, review SLA escalations, manage staff routing rules, and maintain platform integrity.</p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-secondary" id="resetDemoDataBtn">↺ Reset Demo Data</button>
+          </div>
+        </div>
+
+        <!-- Overdue SLA Alerts Queue -->
+        <div class="panel-card" style="margin-bottom:20px; border-left:4px solid var(--rose-500);">
+          <div class="panel-card-head">
+            <div>
+              <span class="csi-badge csi-urgent">SLA ESCALATION QUEUE</span>
+              <h3 style="font-size:16px; margin-top:4px;">Overdue Complaints Requiring Intervention</h3>
+              <p style="font-size:11.5px; color:var(--text-muted);">Cases exceeding SLA response thresholds (24h Reminder, 3d Zonal, 7d Supervisor, 15d Critical Commissioner Alert).</p>
+            </div>
+          </div>
+          <div class="report-feed" id="authorityOverdueList"></div>
+        </div>
+
+        <!-- Department Workload Breakdown -->
+        <div class="panel-card" style="margin-bottom:20px;">
+          <h3 style="font-size:16px; margin-bottom:12px;">Municipal Department Workload Matrix</h3>
+          <div id="departmentWorkloadTable"></div>
+        </div>
+
+        <!-- Department Routing Rules Configuration -->
+        <div class="panel-card">
+          <div class="section-kicker">ROUTING ENGINE CONFIGURATION</div>
+          <h3 style="font-size:16px; margin-bottom:4px;">Category-to-Department Assignment Engine</h3>
+          <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:16px;">Configure which municipal department automatically receives new complaints based on taxonomy.</p>
+          <div id="routingEngineMatrix"></div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer style="padding:24px 28px; border-top:1px solid var(--line); font-size:11px; color:var(--text-light); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <b>Smart Civic Connect</b> • United Nations SDG 11 Sustainable Cities &amp; Communities
+          <span style="margin:0 6px;">•</span>
+          <span>© 2026 Municipal Digital Governance Initiative</span>
+        </div>
+        <div style="display:flex; gap:14px;">
+          <a href="#" id="footerAboutLink" style="color:var(--text-muted);">About Prototype</a>
+          <a href="#" id="footerPrivacyLink" style="color:var(--text-muted);">Privacy &amp; Data Security</a>
+          <a href="https://sdgs.un.org/goals/goal11" target="_blank" rel="noopener noreferrer" style="color:var(--teal-600);">UN SDG 11 Details ↗</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 1: SMART COMPLAINT SUBMISSION
+       ======================================================================== -->
+  <div class="modal-backdrop" id="reportModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">SDG 11 CIVIC ISSUE SUBMISSION</div>
+          <h2 id="reportModalTitle" style="font-size:18px;">Submit Civic Complaint</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <form id="reportForm">
+        <div class="modal-body">
+          <!-- 1. Category & Subcategory -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Major Category <span class="req">*</span></label>
+              <select class="form-control" name="category" id="formMajorCategory" required>
+                <option value="">Select Major Category</option>
+                <option value="public-infra">1. Public Infrastructure &amp; Road Maintenance</option>
+                <option value="street-lighting">2. Street Lighting &amp; Electricity</option>
+                <option value="water-drainage">3. Water and Drainage</option>
+                <option value="sanitation">4. Sanitation &amp; Environmental Hazards</option>
+                <option value="traffic-safety">5. Traffic &amp; Public Safety</option>
+                <option value="accessibility">6. Accessibility &amp; Inclusive Infrastructure</option>
+                <option value="environmental">7. Environmental Issues</option>
+                <option value="encroachment">8. Encroachment &amp; Zoning Violations</option>
+                <option value="property-damage">9. Public Property Damage</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Specific Issue Subcategory <span class="req">*</span></label>
+              <select class="form-control" name="subcategory" id="formSubcategory" required>
+                <option value="">Select Major Category First</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Suggested Department Callout -->
+          <div id="suggestedDeptBar" style="margin-top:-8px; margin-bottom:12px; font-size:11px; color:var(--teal-600); font-weight:600; display:none;">
+            🏛️ Responsible Department: <span id="suggestedDeptName"></span>
+          </div>
+
+          <!-- 2. Title -->
+          <div class="form-group">
+            <label class="form-label">Short Complaint Title <span class="req">*</span></label>
+            <input type="text" class="form-control" name="title" id="formTitle" maxlength="120" placeholder="e.g. Deep pothole creating accident risk near bus stop" required>
+          </div>
+
+          <!-- 3. Description & AI Civic Assistant -->
+          <div class="form-group">
+            <label class="form-label">Detailed Description <span class="req">*</span></label>
+            <textarea class="form-control" name="description" id="formDescription" rows="3" maxlength="2500" placeholder="Describe the hazard, how long it has persisted, who is impacted, and any specific safety or accessibility risks..." required></textarea>
+          </div>
+
+          <!-- AI Civic Issue Assistant Live Suggestions Card (Gemini 2.5 Flash + Heuristic) -->
+          <div class="ai-assistant-card" id="aiAssistantCard" style="display:none;">
+            <div class="ai-header-pill">
+              <span>💡 AI CIVIC ASSISTANT</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span id="aiConfidenceBadge">✨ Gemini 2.5 Flash</span>
+                <button type="button" id="configGeminiKeyBtn" style="background:none; border:1px solid rgba(0,201,167,0.4); color:var(--teal-600); font-size:9.5px; border-radius:4px; padding:2px 6px; cursor:pointer;" title="Configure Gemini API Key">🔑 Gemini Key</button>
+              </div>
+            </div>
+            <div class="ai-suggestion-text" id="aiSuggestionText"></div>
+            <button type="button" class="ai-apply-btn" id="aiApplyBtn">⚡ Apply AI Categorization &amp; Drafting</button>
+          </div>
+
+          <!-- 4. Location with GPS -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Street Location / Address <span class="req">*</span></label>
+              <div style="display:flex; gap:6px;">
+                <input type="text" class="form-control" name="location" id="formLocation" placeholder="Street name or intersection" required>
+                <button type="button" class="btn-secondary" id="formGpsBtn" title="Detect GPS coordinates using browser location">📍 GPS</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nearby Landmark <span class="opt">OPTIONAL</span></label>
+              <input type="text" class="form-control" name="landmark" id="formLandmark" placeholder="e.g. Opposite Metro Pillar 142">
+            </div>
+          </div>
+          <div id="formCoordsDisplay" style="font-size:10px; color:var(--text-muted); margin-top:-8px; margin-bottom:12px; display:none;">
+            📍 Coordinates: <span id="formCoordsVal"></span> (Within Ward 4)
+          </div>
+
+          <!-- 5. Media Evidence (Photo + Voice + Speech-to-Text) -->
+          <div class="media-deck">
+            <div class="media-deck-header">
+              <span>PHOTO &amp; VOICE EVIDENCE</span>
+              <span>CAMERA &amp; MICROPHONE INTEGRATION</span>
+            </div>
+
+            <div class="media-deck-buttons" style="grid-template-columns: repeat(3, 1fr);">
+              <!-- 1. Live Camera Studio -->
+              <button type="button" class="media-act-btn" id="modalCameraBtn" title="Launch device camera with real-time HUD">
+                <span style="font-size:18px;">📸</span>
+                <div>
+                  <b style="font-size:11px; display:block;">Live Camera</b>
+                  <small style="font-size:9.5px; color:var(--text-muted);">Snap photo with HUD</small>
+                </div>
+              </button>
+
+              <!-- 2. Camera Database Picker -->
+              <button type="button" class="media-act-btn" id="modalCameraDbPickBtn" title="Select previously captured photo from database">
+                <span style="font-size:18px;">🗄️</span>
+                <div>
+                  <b style="font-size:11px; display:block;">Evidence Vault</b>
+                  <small style="font-size:9.5px; color:var(--text-muted);">Pick from Camera DB</small>
+                </div>
+              </button>
+
+              <!-- 3. Multilingual Voice Recording Action -->
+              <button type="button" class="media-act-btn" id="modalVoiceBtn">
+                <span style="font-size:18px;" id="modalVoiceIcon">🎙️</span>
+                <div>
+                  <b style="font-size:11px; display:block;" id="modalVoiceLabel">Voice Note</b>
+                  <small style="font-size:9.5px; color:var(--text-muted);" id="modalVoiceHint">Speech-to-Text</small>
+                </div>
+              </button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <button type="button" id="modalUploadFileLink" style="background:none; border:none; color:var(--teal-600); font-size:10.5px; cursor:pointer; text-decoration:underline; padding:0;">📁 Or upload image file directly</button>
+              <input type="file" id="modalFileInput" accept="image/*" style="display:none;">
+            </div>
+
+            <!-- Voice Language Selection -->
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+              <span style="font-size:10.5px; color:var(--text-muted);">Voice Language:</span>
+              <select class="speech-lang-select" id="speechLangSelect">
+                <option value="en-IN">🇬🇧 English (India)</option>
+                <option value="te-IN">🇮🇳 Telugu (తెలుగు)</option>
+                <option value="hi-IN">🇮🇳 Hindi (हिन्दी)</option>
+              </select>
+            </div>
+
+            <!-- Speech-to-Text Bubble -->
+            <div id="speechLiveTranscriptBox" class="transcript-bubble" style="display:none;">
+              <b>Live Transcript:</b> <span id="speechLiveTranscriptText">Listening...</span>
+            </div>
+
+            <!-- Live Webcam Capture Container -->
+            <div class="webcam-live-box" id="modalWebcamBox" style="display:none;">
+              <video id="modalWebcamVideo" autoplay playsinline></video>
+              <div class="webcam-bar">
+                <button type="button" class="btn-teal" id="modalWebcamSnapBtn">Capture Frame</button>
+                <button type="button" class="btn-secondary" id="modalWebcamCloseBtn" style="color:#ffffff;">Close Camera</button>
+              </div>
+            </div>
+
+            <!-- Photo Preview Thumbnails -->
+            <div class="photo-preview-grid" id="modalPhotoPreviewGrid" style="display:none;"></div>
+
+            <!-- Audio Player Preview -->
+            <audio id="modalVoiceAudio" controls style="width:100%; height:34px; margin-top:8px; display:none;"></audio>
+            <div id="mediaStatusMsg" style="font-size:10px; color:var(--teal-600); margin-top:4px;"></div>
+          </div>
+
+          <!-- 6. Priority & Reporter -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Urgency &amp; Hazard Level</label>
+              <select class="form-control" name="priority" id="formPriority">
+                <option value="Normal">Normal — Standard SLA Target</option>
+                <option value="High">High — Road or Public Safety Concern</option>
+                <option value="Urgent">Urgent Hazard — Immediate Danger</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Your Name <span class="opt">OPTIONAL</span></label>
+              <input type="text" class="form-control" name="author" id="formAuthor" placeholder="Leave empty for Anonymous">
+            </div>
+          </div>
+
+          <div id="formErrorMessage" style="color:var(--rose-500); font-size:11px; margin-bottom:10px;"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" data-close>Cancel</button>
+          <button type="submit" class="btn-primary" id="submitComplaintBtn">
+            <span>Submit Complaint</span>
+            <span>→</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: SMART DUPLICATE COMPLAINT RESOLVER
+       ======================================================================== -->
+  <div class="modal-backdrop" id="duplicateModal" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dupModalTitle">
+      <div class="modal-header">
+        <div>
+          <span class="csi-badge csi-high">SMART DUPLICATE DETECTOR</span>
+          <h2 id="dupModalTitle" style="font-size:17px; margin-top:4px;">Similar Complaint Detected Nearby!</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="duplicate-warning-banner">
+          <b>⚠️ A compatible civic complaint was found within <span id="dupDistanceVal">45m</span> of your report.</b>
+          <p style="font-size:11.5px; margin:4px 0 0; color:var(--amber-800);">Supporting an existing complaint boosts its Community Severity Index (CSI) and priority ranking without fragmenting municipal work orders.</p>
+        </div>
+
+        <!-- Matched Ticket Card -->
+        <div class="duplicate-match-card">
+          <div>
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+              <span class="report-id" id="dupTicketId">CL-2841</span>
+              <span class="status-pill open" id="dupTicketStatus">In progress</span>
+            </div>
+            <h4 id="dupTicketTitle" style="font-size:13px; margin:0 0 4px;">Pothole on Oak Avenue near the bus stop</h4>
+            <div style="font-size:11px; color:var(--text-muted);" id="dupTicketLocation">⌖ Oak Avenue &amp; 4th Street</div>
+          </div>
+          <div style="text-align:right;">
+            <b style="font-size:14px; color:var(--teal-600);" id="dupTicketVotes">12</b>
+            <small style="display:block; font-size:9.5px; color:var(--text-light);">Supporters</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="flex-wrap:wrap; justify-content:space-between;">
+        <button type="button" class="btn-secondary" id="dupContinueNewBtn">Continue as New Report</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-secondary" id="dupViewDetailsBtn">View Existing Details</button>
+          <button type="button" class="btn-teal" id="dupSupportBtn">👍 Support Existing (+5 Pts)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3: COMPLAINT DETAILS & RESOLUTION TIMELINE
+       ======================================================================== -->
+  <div class="modal-backdrop" id="detailModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span class="report-id" id="detailId">CL-0000</span>
+            <span class="status-pill open" id="detailStatusBadge">Open</span>
+            <span class="csi-badge csi-high" id="detailCsiBadge">CSI: 72/100</span>
+          </div>
+          <h2 id="detailTitle" style="font-size:18px;">Complaint Details</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Metadata Line -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:11.5px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+              <span>📍 <b id="detailLocation" style="color:var(--text-main);"></b></span>
+              <span id="detailLandmark"></span>
+            </div>
+            <div style="font-size:10.5px; color:var(--text-light); margin-top:2px;">
+              Reported by <b id="detailAuthor">Anonymous</b> • <span id="detailTimeAgo">Recently</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span class="report-dept-tag" id="detailDepartment" style="font-size:10.5px; padding:3px 8px;"></span>
+          </div>
+        </div>
+
+        <!-- Linked Official Docket Banner (if bound) -->
+        <div id="detailGovDocketBanner" style="display:none; margin-bottom:14px; padding:10px 14px; background:#f0fdf9; border:1px solid #99f6e4; border-radius:var(--radius-sm); font-size:12px; color:#0f766e;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span>🏛️ <b>Official Government Docket Linked:</b> <code id="detailGovDocketVal" style="background:#ccfbf1; padding:2px 8px; border-radius:4px; font-weight:700; color:#0d9488;"></code></span>
+            <span id="detailGovPortalVal" style="font-size:11px; color:#115e59; font-weight:600;"></span>
+          </div>
+        </div>
+
+        <!-- CSI Factor Breakdown Box -->
+        <div class="insight-evidence-box" id="detailCsiBreakdownBox" style="margin-bottom:16px;">
+          <b>Community Severity Index Breakdown:</b>
+          <span id="detailCsiFactorsText">Base hazard weight + Community support upvotes</span>
+        </div>
+
+        <!-- Description -->
+        <div style="margin-bottom:16px;">
+          <h4 style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Description of Issue</h4>
+          <p id="detailDescription" style="font-size:12.5px; line-height:1.6; color:var(--navy-800); background:var(--surface-subtle); padding:12px; border-radius:var(--radius-sm); margin:0; white-space:pre-wrap;"></p>
+        </div>
+
+        <!-- Attached Media Preview -->
+        <div id="detailMediaSection" style="margin-bottom:18px;"></div>
+
+        <!-- Resolution Evidence (If Resolved) -->
+        <div id="detailResolutionProofBox" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius-sm); padding:12px; margin-bottom:18px;">
+          <h4 style="font-size:12px; color:#065f46; margin-bottom:6px;">Municipal Resolution Evidence &amp; Repair Proof</h4>
+          <p id="detailResolutionNotes" style="font-size:11.5px; color:#047857; margin:0 0 8px;"></p>
+          <div id="detailResolutionPhoto"></div>
+        </div>
+
+        <!-- Transparent Resolution Workflow Stepper -->
+        <div style="margin-bottom:18px;">
+          <h4 style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Transparent Resolution Timeline</h4>
+          <div class="timeline-stepper" id="detailTimelineStepper"></div>
+        </div>
+
+        <!-- Citizen Verification Action Box (When awaiting citizen confirmation) -->
+        <div id="detailCitizenVerifyBox" style="display:none; background:#fef9c3; border:1px solid #fde047; border-radius:var(--radius-sm); padding:14px; margin-bottom:16px;">
+          <b style="color:#854d0e; display:block; margin-bottom:4px;">Citizen Resolution Verification</b>
+          <p style="font-size:11.5px; color:#713f12; margin:0 0 10px;">The city marked this issue as resolved. Have you inspected the site? Please confirm whether the repair was completed satisfactorily.</p>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn-teal" id="detailConfirmFixBtn">✅ Confirm Repair Verified (+15 Pts)</button>
+            <button type="button" class="btn-secondary" id="detailDisputeFixBtn" style="border-color:#ca8a04; color:#854d0e;">❌ Dispute — Issue Persists</button>
+          </div>
+        </div>
+
+        <!-- Authority Action Controls (Visible in Authority / Admin mode) -->
+        <div id="detailAuthorityPanel" style="display:none; background:var(--surface-subtle); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px; margin-top:16px;">
+          <h4 style="font-size:12px; font-weight:800; color:var(--navy-800); text-transform:uppercase; margin-bottom:8px;">Authority Officer Management</h4>
+          
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Update Status</label>
+              <select class="form-control" id="authorityStatusSelect">
+                <option value="Open">Open</option>
+                <option value="Verified">Verified by Officer</option>
+                <option value="Assigned">Assigned to Crew</option>
+                <option value="In progress">In Progress (Work Underway)</option>
+                <option value="Resolved">Resolved (Awaiting Citizen Verification)</option>
+                <option value="Closed">Closed (Completed &amp; Signed Off)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reassign Department</label>
+              <select class="form-control" id="authorityDeptSelect">
+                <option value="Roads & Municipal Engineering Dept">Roads &amp; Engineering</option>
+                <option value="Electrical & Power Department">Electrical &amp; Power</option>
+                <option value="Water Supply & Sewerage Board">Water &amp; Drainage</option>
+                <option value="Sanitation & Solid Waste Management">Sanitation &amp; Waste</option>
+                <option value="Traffic Police & Transport Authority">Traffic Police</option>
+                <option value="Accessibility & Public Works Dept">Accessibility &amp; PWD</option>
+                <option value="Environmental Protection Dept">Environment</option>
+                <option value="Town Planning & Enforcement Squad">Town Planning</option>
+                <option value="Municipal Asset Maintenance Division">Asset Maintenance</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Officer Note / Resolution Evidence Summary</label>
+            <textarea class="form-control" id="authorityOfficerNote" rows="2" placeholder="Document work crew actions, inspection results, or resolution proof..."></textarea>
+          </div>
+
+          <button type="button" class="btn-primary" id="authorityApplyChangesBtn">Save Officer Updates &amp; Append Timeline</button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" class="support-vote-btn" id="detailSupportBtn">
+            <span>👍</span>
+            <span>Support Complaint (<span id="detailVoteCount">0</span>)</span>
+          </button>
+          <button type="button" class="btn-secondary" id="detailGovDispatchBtn" style="font-size:11px; color:var(--teal-600); border-color:var(--teal-border);">
+            <span>🏛️</span> Dispatch to Gov Portal
+          </button>
+        </div>
+        <button type="button" class="btn-secondary" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: GOVERNMENT PORTAL DISPATCHER & DOCKET CROSS-REFERENCE
+       ======================================================================== -->
+  <div class="modal-backdrop" id="govDispatchModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="dispatchModalTitle">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">GOVERNMENT INTEROPERABILITY GATEWAY</div>
+          <h2 id="dispatchModalTitle" style="font-size:18px;">Dispatch Grievance to Official Portal</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Recommended Portal Callout -->
+        <div class="notice-card" style="border-left-color:var(--teal-500); background:#f0fdf9; margin-bottom:14px;">
+          <div class="notice-card-header">
+            <span class="notice-badge" id="recommendedPortalBadge">RECOMMENDED: GHMC e-COMPLAINTS</span>
+            <small id="recommendedPortalSla" style="color:var(--teal-600); font-weight:700;">SLA: 48 HOURS</small>
+          </div>
+          <h4 id="recommendedPortalName" style="font-size:13.5px; margin:2px 0 4px;">Greater Hyderabad Municipal Corporation (GHMC)</h4>
+          <p id="recommendedPortalReason" style="font-size:11.5px; color:var(--text-muted); margin:0;">Matched responsible municipal authority based on issue category.</p>
+        </div>
+
+        <!-- Target Portal Selector -->
+        <div class="form-group">
+          <label class="form-label">Selected Government Grievance Destination</label>
+          <select class="form-control" id="dispatchTargetSelect">
+            <option value="ghmc">1. GHMC — Greater Hyderabad Municipal Corporation (ghmc.gov.in)</option>
+            <option value="hmwssb">2. HMWSSB — Hyderabad Water Supply &amp; Sewerage Board (hyderabadwater.gov.in)</option>
+            <option value="swachhata">3. Swachhata-MoHUA — National Sanitation Grievance (swachh.city)</option>
+            <option value="prajavani">4. Telangana Prajavani — Chief Minister's Grievance Redressal (prajavani.cgg.gov.in)</option>
+            <option value="cdma">5. Telangana CDMA — Municipal Administration &amp; Urban Development (emunicipal.telangana.gov.in)</option>
+            <option value="cpgrams">6. CPGRAMS — Central Government of India Grievances (pgportal.gov.in)</option>
+            <option value="mycure">7. MyCURE — GHMC Real-Time Mobile Grievance Tracker</option>
+          </select>
+        </div>
+
+        <!-- Formatted Dossier Pre-view -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">Formatted Municipal Grievance Payload</label>
+            <button type="button" class="btn-secondary" id="copyPayloadBtn" style="padding:3px 8px; font-size:10.5px;">📋 Copy Payload</button>
+          </div>
+          <pre class="dossier-box" id="dispatchDossierText" readonly></pre>
+        </div>
+
+        <!-- Direct Portal Action Links -->
+        <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-teal" id="openTargetPortalBtn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+            <span>🌐 Open Official Portal in New Tab</span>
+            <span>↗</span>
+          </a>
+        </div>
+
+        <!-- Cross-Reference Docket Number Input -->
+        <div style="background:var(--surface-subtle); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px;">
+          <label class="form-label" style="margin-bottom:4px;">Official Government Registration / Docket Token</label>
+          <p style="font-size:11px; color:var(--text-muted); margin:0 0 8px;">Enter the acknowledgement number generated by the government portal to link and track across platforms.</p>
+          <div style="display:flex; gap:8px;">
+            <input type="text" class="form-control" id="govDocketInput" placeholder="e.g. GHMC-2026-X8392">
+            <button type="button" class="btn-primary" id="saveLinkedDocketBtn" style="white-space:nowrap;">Save &amp; Link Docket</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3B: COMPLAINT TRACKING SYSTEM
+       ======================================================================== -->
+
+  <!-- ========================================================================
+       MODAL 3A: ADMIN & OFFICER LOGIN PORTAL
+       ======================================================================== -->
+  <div class="modal-backdrop" id="adminLoginModal" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle" style="max-width:460px;">
+      <div class="modal-header" style="background:linear-gradient(135deg,#0f172a,#1e3a5f); color:#fff; border-radius:var(--radius-sm) var(--radius-sm) 0 0;">
+        <div>
+          <div class="section-kicker" style="color:#00f2c3;">SECURE ACCESS PORTAL</div>
+          <h2 id="adminLoginTitle" style="font-size:17px; color:#fff;">🔐 Admin / Officer Login</h2>
+        </div>
+        <button class="modal-close-btn" id="adminLoginCloseBtn" aria-label="Close" style="color:#fff; opacity:0.7;">×</button>
+      </div>
+
+      <div class="modal-body" style="padding:24px;">
+        <!-- Tab Row -->
+        <div style="display:flex; gap:0; margin-bottom:20px; border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden;">
+          <button type="button" id="loginTabBtn" class="admin-tab-btn active-tab" style="flex:1; padding:9px; font-size:12px; font-weight:700; background:var(--teal-600); color:#fff; border:none; cursor:pointer;">🔑 Login</button>
+          <button type="button" id="changePassTabBtn" class="admin-tab-btn" style="flex:1; padding:9px; font-size:12px; font-weight:700; background:var(--surface); color:var(--text-muted); border:none; cursor:pointer;">🔒 Change Password</button>
+          <button type="button" id="changeUsernameTabBtn" class="admin-tab-btn" style="flex:1; padding:9px; font-size:12px; font-weight:700; background:var(--surface); color:var(--text-muted); border:none; cursor:pointer;">👤 Change Username</button>
+        </div>
+
+        <!-- === LOGIN PANEL === -->
+        <div id="loginPanel">
+          <div style="background:var(--surface-subtle); border:1px solid var(--teal-600); border-radius:8px; padding:10px 12px; margin-bottom:16px; font-size:12px; color:var(--text-body);">
+            <b>🛡️ First-time setup:</b> Default credentials are <code style="color:var(--teal-700);">admin</code> / <code style="color:var(--teal-700);">Admin@123</code>. After login, go to <b>Change Password</b> tab to set your own.
+            <br>Current username: <b id="currentAdminUsername">admin</b>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="form-label" for="adminUsernameInput">Username</label>
+            <input type="text" id="adminUsernameInput" class="form-control" placeholder="admin" autocomplete="username">
+          </div>
+          <div style="margin-bottom:6px;">
+            <label class="form-label" for="adminPasswordInput">Password</label>
+            <div style="position:relative;">
+              <input type="password" id="adminPasswordInput" class="form-control" placeholder="Enter password" autocomplete="current-password" style="padding-right:42px;">
+              <button type="button" id="toggleAdminPwdBtn" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:15px; color:var(--text-muted);" title="Show/Hide">👁️</button>
+            </div>
+          </div>
+          <p id="adminLoginError" style="color:#ef4444; font-size:11.5px; margin:6px 0 10px; display:none;">Incorrect username or password. Please try again.</p>
+          <button type="button" class="btn-primary" id="adminLoginSubmitBtn" style="width:100%; padding:11px;">🔓 Login to Admin Panel</button>
+        </div>
+
+        <!-- === CHANGE PASSWORD PANEL === -->
+        <div id="changePassPanel" style="display:none;">
+          <div style="background:var(--surface-subtle); border-left:3px solid var(--teal-600); padding:10px 12px; margin-bottom:16px; font-size:12px; border-radius:4px;">
+            ✏️ Create your <b>own custom password</b> here. You need to verify your current password first.
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="form-label" for="changeCurrentPwd">Current Password (for verification)</label>
+            <input type="password" id="changeCurrentPwd" class="form-control" placeholder="Enter current password">
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="form-label" for="changeNewPwd">New Password <small style="color:var(--text-muted);">(min 6 characters)</small></label>
+            <input type="password" id="changeNewPwd" class="form-control" placeholder="Choose a strong new password">
+          </div>
+          <div style="margin-bottom:6px;">
+            <label class="form-label" for="changeConfirmPwd">Confirm New Password</label>
+            <input type="password" id="changeConfirmPwd" class="form-control" placeholder="Repeat new password">
+          </div>
+          <p id="changePwdError" style="color:#ef4444; font-size:11.5px; margin:6px 0 10px; display:none;"></p>
+          <p id="changePwdSuccess" style="color:#10b981; font-size:11.5px; margin:6px 0 10px; display:none;"></p>
+          <button type="button" class="btn-primary" id="changePasswordSubmitBtn" style="width:100%; padding:11px;">🔒 Update My Password</button>
+        </div>
+
+        <!-- === CHANGE USERNAME PANEL === -->
+        <div id="changeUsernamePanel" style="display:none;">
+          <div style="background:var(--surface-subtle); border-left:3px solid #f59e0b; padding:10px 12px; margin-bottom:16px; font-size:12px; border-radius:4px;">
+            👤 Create your <b>own custom username</b>. Current username: <b id="currentAdminUsername2">admin</b>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="form-label" for="newAdminUsername">New Username <small style="color:var(--text-muted);">(min 3 characters)</small></label>
+            <input type="text" id="newAdminUsername" class="form-control" placeholder="e.g. officer_ravi or my_username">
+          </div>
+          <div style="margin-bottom:6px;">
+            <label class="form-label" for="unameVerifyPwd">Verify with Current Password</label>
+            <input type="password" id="unameVerifyPwd" class="form-control" placeholder="Enter your current password to confirm">
+          </div>
+          <p id="changeUnamError" style="color:#ef4444; font-size:11.5px; margin:6px 0 10px; display:none;"></p>
+          <p id="changeUnamSuccess" style="color:#10b981; font-size:11.5px; margin:6px 0 10px; display:none;"></p>
+          <button type="button" class="btn-primary" id="changeUsernameSubmitBtn" style="width:100%; padding:11px; background:#f59e0b; border-color:#f59e0b;">👤 Update My Username</button>
+        </div>
+      </div>
+    </div>
+  </div>  <div class="modal-backdrop" id="trackingModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="trackingTitle" style="max-width:720px; max-height:88vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">LIVE GRIEVANCE TRACKER</div>
+          <h2 id="trackingTitle" style="font-size:17px;">🔍 Track Your Complaint</h2>
+        </div>
+        <button class="modal-close-btn" id="trackModalCloseBtn" aria-label="Close tracking">×</button>
+      </div>
+
+      <div class="modal-body" style="padding:16px; overflow-y:auto; flex:1;">
+        <!-- Search Bar -->
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <div class="search-input-wrap" style="flex:1;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="trackSearchInput" placeholder="Enter Ticket ID (SCC-2841), phone number, or keywords…" aria-label="Search complaints">
+          </div>
+          <button type="button" class="btn-primary" id="trackSearchBtn" style="white-space:nowrap;">Track Now</button>
+        </div>
+
+        <!-- Quick Access Chips -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+          <span style="font-size:11px; color:var(--text-muted); align-self:center;">Quick Search:</span>
+          <button type="button" class="doubt-chip" onclick="document.getElementById('trackSearchInput').value='SCC-2841'; window.searchTrackComplaint('SCC-2841')">SCC-2841 (Pothole)</button>
+          <button type="button" class="doubt-chip" onclick="document.getElementById('trackSearchInput').value='SCC-2840'; window.searchTrackComplaint('SCC-2840')">SCC-2840 (Garbage)</button>
+          <button type="button" class="doubt-chip" onclick="document.getElementById('trackSearchInput').value='SCC-2839'; window.searchTrackComplaint('SCC-2839')">SCC-2839 (Lighting)</button>
+          <button type="button" class="doubt-chip" onclick="document.getElementById('trackSearchInput').value='SCC-2838'; window.searchTrackComplaint('SCC-2838')">SCC-2838 (Ramp)</button>
+        </div>
+
+        <!-- Results Container -->
+        <div id="trackResultBox">
+          <div style="text-align:center; padding:40px; color:var(--text-muted);">
+            <div style="font-size:48px; margin-bottom:12px;">🔍</div>
+            <div style="font-size:14px; font-weight:600;">Enter a Ticket ID or Phone Number</div>
+            <div style="font-size:12px; margin-top:6px;">e.g. SCC-2841 &nbsp;•&nbsp; Your mobile number &nbsp;•&nbsp; Keyword</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content:space-between;">
+        <div style="font-size:11px; color:var(--text-muted);">Tracking powered by Smart Civic Connect Live Database</div>
+        <button type="button" class="btn-secondary" id="trackModalCloseBtn2" onclick="document.getElementById('trackingModal').hidden=true; document.body.style.overflow='';">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 4: ABOUT SMART CIVIC CONNECT & SDG 11
+       ======================================================================== -->
+  <div class="modal-backdrop" id="infoModal" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">ABOUT SMART CIVIC CONNECT</div>
+          <h2 id="infoTitle" style="font-size:18px;">Sustainable Cities &amp; Communities</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size:12.5px; line-height:1.6; color:var(--navy-800);">
+          <b>Smart Civic Connect</b> is an advanced AI-powered civic issue reporting, urban accessibility, and community governance platform built strictly in alignment with <b>United Nations Sustainable Development Goal 11 (SDG 11)</b>.
+        </p>
+
+        <h4 style="font-size:13px; margin:14px 0 6px;">Key Differentiators &amp; Innovations</h4>
+        <ul style="font-size:12px; color:var(--text-muted); line-height:1.6; padding-left:20px; margin:0 0 14px;">
+          <li><b>Smart Duplicate Detection:</b> Automatically identifies nearby compatible complaints via Haversine distance and token similarity, preventing duplicate tickets and consolidating municipal effort.</li>
+          <li><b>Hierarchical 9-Category Taxonomy:</b> Over 50 specific subcategories mapping automatically to 9 responsible departments.</li>
+          <li><b>AI Civic Issue Assistant:</b> Natural Language keyword classifier suggesting categories, departments, and auto-draft descriptions.</li>
+          <li><b>Transparent Resolution Timeline:</b> Complete audit trail from Submitted → Verified → In Progress → Resolved → Citizen Verification → Closed.</li>
+          <li><b>Community Severity Index (CSI 0-100):</b> Transparent formula balancing safety risk, accessibility impact, and citizen votes.</li>
+          <li><b>Multilingual Voice Reporting:</b> English, Telugu, and Hindi voice notes with live Web Speech API transcription.</li>
+          <li><b>Accessibility Navigator:</b> Mapped wheelchair ramps, tactile paving, and active barrier alerts for inclusive public transit.</li>
+        </ul>
+
+        <div class="notice-card" style="margin:0;">
+          <b>Demonstration Mode &amp; Local Persistence</b>
+          <p>When run with the local server, complaint records and status updates are saved to the server's civic_data.json file and shared across browsers. Browser-only preferences and offline changes stay in local storage. Supabase SQL migration is available for production cloud deployment.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" data-close>Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 5: DEDICATED LIVE CAMERA STUDIO (VIEWFINDER & WATERMARK)
+       ======================================================================== -->
+  <div class="modal-backdrop" id="cameraStudioModal" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="cameraStudioTitle" style="max-width:540px;">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">OPTICAL FIELD SENSOR</div>
+          <h2 id="cameraStudioTitle" style="font-size:17px;">Live Camera Capture Studio</h2>
+        </div>
+        <button class="modal-close-btn" id="cameraStudioCloseBtn" aria-label="Close camera">×</button>
+      </div>
+
+      <div class="modal-body" style="padding:14px;">
+        <!-- Live Viewfinder Box -->
+        <div class="camera-viewfinder" id="cameraViewfinder">
+          <video id="cameraStudioVideo" autoplay playsinline muted></video>
+          
+          <!-- Viewfinder Rule of Thirds Grid -->
+          <div class="camera-grid-overlay" id="cameraGridOverlay">
+            <div class="camera-grid-line v1"></div>
+            <div class="camera-grid-line v2"></div>
+            <div class="camera-grid-line h1"></div>
+            <div class="camera-grid-line h2"></div>
+          </div>
+
+          <!-- Camera HUD Overlay -->
+          <div class="camera-hud-top">
+            <span class="camera-rec-dot"></span>
+            <span id="cameraHudStatus">CAMERA ACTIVE (30 FPS)</span>
+            <span id="cameraHudGps">📍 17.4938° N, 78.3912° E</span>
+          </div>
+
+          <div class="camera-hud-bottom">
+            <span id="cameraHudTimestamp">2026-10-30 09:15:00 IST</span>
+            <span>NORTHWOOD WARD 4</span>
+          </div>
+
+          <!-- Flash Pulse Layer -->
+          <div class="camera-flash-layer" id="cameraFlashLayer"></div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="camera-controls-bar">
+          <button type="button" class="camera-tool-btn" id="cameraFlipBtn" title="Switch Front / Rear Camera">
+            <span>🔄</span> Flip Lens
+          </button>
+
+          <!-- Large Tactile Shutter Button -->
+          <button type="button" class="camera-shutter-btn" id="cameraShutterBtn" title="Take Photo">
+            <div class="camera-shutter-inner"></div>
+          </button>
+
+          <button type="button" class="camera-tool-btn" id="cameraWatermarkToggleBtn" title="Toggle Watermark Overlay">
+            <span>🏷️</span> Watermark: ON
+          </button>
+        </div>
+
+        <!-- Captured Photo Review Strip -->
+        <div id="cameraCaptureReviewBox" style="display:none; margin-top:14px; background:var(--surface-subtle); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line);">
+          <div style="font-size:11px; font-weight:700; color:var(--text-main); margin-bottom:8px;">CAPTURED SNAPSHOT PREVIEW:</div>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <img id="cameraCapturedImgPreview" src="" alt="Captured preview" style="max-width:140px; max-height:100px; border-radius:6px; border:1px solid var(--line); object-fit:cover;">
+            <div style="flex:1;">
+              <div style="font-size:11.5px; color:var(--navy-900); font-weight:600;" id="cameraCapturedMeta">Photo captured &amp; geotagged</div>
+              <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                <button type="button" class="btn-primary" id="cameraAcceptSnapshotBtn" style="font-size:11px; padding:6px 12px;">✅ Accept &amp; Attach</button>
+                <button type="button" class="btn-secondary" id="cameraRetakeBtn" style="font-size:11px; padding:6px 10px;">↺ Retake</button>
+                <button type="button" class="btn-secondary" id="cameraDownloadBtn" style="font-size:11px; padding:6px 10px;">📥 Download</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button type="button" class="btn-secondary" id="cameraStudioUploadFallbackBtn">📂 Or Pick Image File</button>
+        <button type="button" class="btn-secondary" id="cameraStudioDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 6: PHOTO LIGHTBOX & METADATA INSPECTOR
+       ======================================================================== -->
+  <div class="modal-backdrop" id="photoLightboxModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle" style="max-width:780px;">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">EVIDENCE METADATA INSPECTOR</div>
+          <h2 id="lightboxTitle" style="font-size:17px;">Field Photo Evidence</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+
+      <div class="modal-body" style="padding:14px;">
+        <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:16px;">
+          <div style="background:#0a0f1d; border-radius:var(--radius-sm); overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:280px;">
+            <img id="lightboxImg" src="" alt="Full view" style="max-width:100%; max-height:420px; object-fit:contain; display:block;">
+          </div>
+          <div>
+            <div style="background:var(--surface-subtle); border:1px solid var(--line); border-radius:var(--radius-sm); padding:14px;">
+              <h4 style="font-size:14px; margin:0 0 6px;" id="lightboxCaption">Civic Evidence Snapshot</h4>
+              <span class="report-dept-tag" id="lightboxDept" style="margin-bottom:12px; display:inline-block;">Roads &amp; Engineering</span>
+
+              <div class="evidence-meta-row"><b>Ticket Reference:</b> <span id="lightboxTicket">SCC-2841</span></div>
+              <div class="evidence-meta-row"><b>Location:</b> <span id="lightboxLocation">Oak Avenue &amp; 4th St</span></div>
+              <div class="evidence-meta-row"><b>GPS Coordinates:</b> <span id="lightboxGps">17.4938° N, 78.3912° E</span></div>
+              <div class="evidence-meta-row"><b>Timestamp:</b> <span id="lightboxTime">Oct 29, 2026, 11:20 AM</span></div>
+              <div class="evidence-meta-row"><b>Captured By:</b> <span id="lightboxAuthor">Citizen Camera (Maya J.)</span></div>
+              <div class="evidence-meta-row"><b>Integrity Check:</b> <span style="color:#059669; font-weight:700;">✓ Cryptographically Geotagged</span></div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+              <a href="#" id="lightboxDownloadBtn" class="btn-teal" download="civic_evidence.jpg" style="text-decoration:none;">📥 Download Original</a>
+              <button type="button" class="btn-secondary" id="lightboxViewTicketBtn">📋 View Complaint</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 7: CAMERA DATABASE PICKER (ATTACH EXISTING PHOTO)
+       ======================================================================== -->
+  <div class="modal-backdrop" id="cameraPickerModal" hidden>
+    <div class="modal-dialog wide" role="dialog" aria-modal="true" aria-labelledby="cameraPickerTitle">
+      <div class="modal-header">
+        <div>
+          <div class="section-kicker">CAMERA DATABASE VAULT</div>
+          <h2 id="cameraPickerTitle" style="font-size:17px;">Select Photo Evidence from Database</h2>
+        </div>
+        <button class="modal-close-btn" data-close aria-label="Close dialog">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">Choose an existing geotagged photograph from the database to attach to this report.</p>
+        <div class="camera-picker-grid" id="cameraPickerGrid"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" data-close>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FLOATING CIVIC AI ASSISTANT CHATBOT (CIVICBOT)
+       ======================================================================== -->
+  <button id="civicChatbotToggleBtn" class="floating-chat-btn" aria-label="Open Civic AI Assistant" title="Open Smart Civic AI Assistant (Gemini 2.5 Flash)">
+    <div class="chat-btn-icon-wrapper">
+      <span class="chat-btn-avatar">🤖</span>
+      <span class="chat-btn-pulse"></span>
+    </div>
+    <span class="chat-btn-label">Civic AI Assistant</span>
+    <span class="chat-btn-pill">AI 1.5</span>
+  </button>
+
+  <div id="civicChatbotDrawer" class="chat-drawer" hidden>
+    <div class="chat-drawer-header">
+      <div class="chat-header-info">
+        <div class="chat-bot-avatar">🤖</div>
+        <div>
+          <div class="chat-header-title">Smart Civic AI Assistant</div>
+          <div class="chat-header-sub">
+            <span class="chat-status-dot online"></span>
+            <span id="chatEngineStatusText">Gemini 2.5 Flash + Civic NLP</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button type="button" class="chat-header-btn" id="chatConfigureKeyBtn" title="Configure Google Gemini API Key">🔑 Key</button>
+        <button type="button" class="chat-header-btn" id="chatClearHistoryBtn" title="Clear Chat History">🗑️</button>
+        <button type="button" class="chat-close-btn" id="chatCloseBtn" aria-label="Close Chat">×</button>
+      </div>
+    </div>
+
+    <!-- Dedicated Doubt Clearing Hub Tabs / Selector -->
+    <div class="chat-doubt-hub">
+      <div class="chat-doubt-hub-label">💡 CLEAR YOUR DOUBTS:</div>
+      <div class="chat-doubt-chips">
+        <button type="button" class="doubt-chip" data-prompt="How does complaint reporting, tracking, and SLA escalation work in Smart Civic Connect?">❓ How Reporting Works</button>
+        <button type="button" class="doubt-chip" data-prompt="What are the municipal laws, fines, and penalties for illegal garbage dumping, water pollution, or footpath encroachment in Hyderabad / GHMC?">⚖️ Municipal Laws &amp; Fines</button>
+        <button type="button" class="doubt-chip" data-prompt="What are the official municipal SLA resolution timelines, and what should I do if an issue exceeds its SLA?">⏱️ SLA Timelines &amp; Escalations</button>
+        <button type="button" class="doubt-chip" data-prompt="How do I escalate an overdue complaint to Prajavani, GHMC Commissioner, or file an RTI?">🏛️ Prajavani &amp; RTI Escalation</button>
+        <button type="button" class="doubt-chip" data-prompt="How does the Camera Evidence Database and GPS geotagging watermark verify report authenticity?">📷 Camera &amp; Photo Database</button>
+        <button type="button" class="doubt-chip" data-prompt="How does the Community Severity Index (CSI) formula calculate urgency from 0 to 100?">⚙️ CSI Formula Explained</button>
+        <button type="button" class="doubt-chip" data-prompt="How do I earn civic points, verified badges, and climb the neighborhood leaderboard?">🏆 Points, Badges &amp; Rewards</button>
+        <button type="button" class="doubt-chip" data-prompt="What are citizens' accessibility rights under UN SDG 11.2 and the RPwD Act 2016 for ramps and lifts?">♿ Accessibility &amp; SDG 11.2</button>
+        <button type="button" class="doubt-chip" data-prompt="Is my personal information and phone number private when submitting reports? Can I report anonymously?">🔒 Privacy &amp; Anonymous Filing</button>
+      </div>
+    </div>
+
+    <!-- Chat Stream Box -->
+    <div class="chat-drawer-messages" id="civicChatMessages">
+      <!-- Welcome Message -->
+      <div class="chat-bubble bot">
+        <div class="chat-bubble-author">🤖 CivicBot Assistant &amp; Doubt Clearing Tutor</div>
+        <div class="chat-bubble-content">
+          Namaste &amp; Hello! I'm your <b>Smart Civic AI Assistant &amp; Municipal Tutor</b>.
+          <p style="margin:4px 0 6px;">I can clarify any doubt regarding city bylaws, penalties, official SLAs, government portals (GHMC, HMWSSB, Prajavani), or help you draft official complaint tickets with photo evidence.</p>
+          <div style="font-size:11px; background:#f0fdf9; border:1px solid #99f6e4; padding:6px 10px; border-radius:6px; color:#0f766e; margin-top:6px;">
+            💡 <b>Clear your doubts:</b> Click any doubt topic from the scrolling bar above, or ask any question below!
+          </div>
+        </div>
+        <div class="chat-bubble-time">Just now</div>
+      </div>
+    </div>
+
+    <!-- Quick Prompt Suggestions Chips -->
+    <div class="chat-drawer-quick-prompts">
+      <button type="button" class="quick-chip" data-prompt="There is a deep pothole on Main Road causing accidents.">🛣️ Report Pothole</button>
+      <button type="button" class="quick-chip" data-prompt="Sewage water is overflowing into the residential street.">💧 Sewage Overflow</button>
+      <button type="button" class="quick-chip" data-prompt="What is the official SLA for fixing non-functional streetlights?">⏱️ Streetlight SLA</button>
+      <button type="button" class="quick-chip" data-prompt="Which government portal should I file water leakage complaints to?">🏛️ Gov Portals</button>
+    </div>
+
+    <!-- Chat Input Tray -->
+    <form class="chat-drawer-input-tray" id="civicChatForm">
+      <input type="text" class="chat-input" id="civicChatInput" placeholder="Type your civic question or describe a problem..." autocomplete="off">
+      <button type="submit" class="chat-send-btn" id="civicChatSendBtn" aria-label="Send message">
+        <span>➤</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-notice" id="toastNotice" role="status" aria-live="polite">
+    <div class="toast-icon">✓</div>
+    <div class="toast-content">
+      <b id="toastTitle">Action Successful</b>
+      <small id="toastMsg">Your civic action has been recorded.</small>
+    </div>
+  </div>
+
+  <!-- Leaflet JS for Maps -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>

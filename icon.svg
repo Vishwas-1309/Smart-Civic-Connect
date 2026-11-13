@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a2520"/>
+      <stop offset="100%" stop-color="#124637"/>
+    </linearGradient>
+    <linearGradient id="tealGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2c3"/>
+      <stop offset="100%" stop-color="#00a884"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="100" height="100" rx="24" fill="url(#bgGradIcon)" stroke="#1d5c49" stroke-width="2"/>
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#00f2c3" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.5"/>
+
+  <!-- Network dots -->
+  <circle cx="18" cy="34" r="3" fill="#00f2c3" opacity="0.8"/>
+  <circle cx="82" cy="34" r="3" fill="#00f2c3" opacity="0.8"/>
+  <circle cx="26" cy="76" r="3.5" fill="#38ef7d" opacity="0.8"/>
+  <circle cx="74" cy="76" r="3.5" fill="#38ef7d" opacity="0.8"/>
+  <path d="M18 34 L50 50 L82 34 M26 76 L50 50 L74 76" stroke="#00f2c3" stroke-width="1" opacity="0.35"/>
+
+  <!-- Skyline silhouette -->
+  <path d="M26 70 L26 54 L34 54 L34 70 Z" fill="#1b5141"/>
+  <path d="M34 70 L34 46 L44 46 L44 70 Z" fill="#246a56"/>
+  <path d="M56 70 L56 44 L66 44 L66 70 Z" fill="#246a56"/>
+  <path d="M66 70 L66 56 L74 56 L74 70 Z" fill="#1b5141"/>
+
+  <!-- Civic Pin with Resolution Checkmark -->
+  <path d="M50 20 C39.5 20 31 28.5 31 39 C31 52.5 50 71 50 71 C50 71 69 52.5 69 39 C69 28.5 60.5 20 50 20 Z" fill="url(#tealGradIcon)"/>
+  <circle cx="50" cy="38" r="9.5" fill="#0a2520"/>
+  <path d="M45 38 L49 42 L56 34" fill="none" stroke="#00f2c3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
